@@ -1,6 +1,7 @@
 import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
 
 dataset = pd.read_csv('./data/loan_prediction/train.csv')
 
@@ -27,7 +28,7 @@ new_sample = new_sample.dropna()
 
 
 new_sample['ApplicantIncome'] = new_sample['CoapplicantIncome'] / new_sample['ApplicantIncome']
-new_sample['LoanAmount'] = new_sample['LoanAmount'] * new_sample['Loan_Amount_Term']
+new_sample['LoanAmount'] = np.log(new_sample['LoanAmount'] * new_sample['Loan_Amount_Term'])
 
 
 new_sample.drop(['CoapplicantIncome', 'Loan_Amount_Term'], axis=1, inplace=True)
