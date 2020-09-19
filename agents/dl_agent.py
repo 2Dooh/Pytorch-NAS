@@ -59,13 +59,12 @@ class DeepLearningAgent(Agent):
     def train(self):
         for epoch in range(self.config.max_epochs):
             self.train_one_epoch()
-            # self.validate()
-
+            self.validate()
             self.current_epoch += 1
 
     def train_one_epoch(self):
         self.model.train()
-        n_trained = 0
+        n_trained = train_loss = 0
         for batch_idx, (data, target) in enumerate(self.data_loader.train_loader):
             n_trained += len(data)
 
@@ -75,6 +74,7 @@ class DeepLearningAgent(Agent):
 
             output = self.model(data).view_as(target)
             loss = self.criterion(output, target)
+            train_loss += loss.item()
             loss.backward()
             self.optimizer.step()
             if batch_idx % self.config.log_interval == 0:
@@ -87,6 +87,8 @@ class DeepLearningAgent(Agent):
 
             self.current_iter += 1
 
+        self.summary_writer.add_scalar('Loss/train', train_loss/len(self.data_loader.train_loader.dataset), self.current_epoch)
+
     def validate(self):
         self.model.eval()
         test_loss = correct = 0
@@ -96,16 +98,23 @@ class DeepLearningAgent(Agent):
                 data, target = data.to(self.device), target.to(self.device)
 
                 output = self.model(data)
-                test_loss += self.criterion(output, target, size_average=False).item()  # sum up batch loss
-                _, pred = output.max(dim=1, keepdim=True)  # get the index of the max log-probability
+                test_loss += self.criterion(output, target).item()  # sum up batch loss
+                pred = output
+                pred[pred <= 0.5] = 0
+                pred[pred > 0.5] = 1
                 correct += pred.eq(target.view_as(pred)).sum().item()
 
         test_loss /= len(self.data_loader.test_loader.dataset)
+        self.summary_writer.add_scalar('Loss/test', test_loss, self.current_epoch)
+        self.summary_writer.add_scalar('Accuracy/test', correct/len(self.data_loader.test_loader.dataset), self.current_epoch)
         print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
             test_loss, 
             correct, 
             len(self.data_loader.test_loader.dataset),
             100. * correct / len(self.data_loader.test_loader.dataset)))
+
+    def predict(self):
+        pass
 
     def finalize(self):
         pass

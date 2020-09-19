@@ -3,32 +3,34 @@ from torchvision import transforms
 import torch
 import pandas as pd
 import os
+from sklearn.model_selection import StratifiedShuffleSplit
 
 class LoanPrediction:
     def __init__(self, config):
         self.config = config
 
-        train_path = os.path.join(config.data_folder, config.train_set)
-        valid_path = os.path.join(config.data_folder, config.test_set)
-        train_set = pd.read_csv(train_path)
-        valid_set = pd.read_csv(valid_path)
+        data_path = os.path.join(config.data_folder, config.train_set)
+        dataset = pd.read_csv(data_path)
 
-        train_set = self.__transform(train_set)
-        valid_set = self.__transform(valid_set)
+        dataset = self.__transform(dataset)
         
-        train_data, train_labels = train_set[:, :-1], train_set[:, -1]
-        valid_data, valid_labels = valid_set[:, :-1], valid_set[:, -1]
+        data, labels = dataset[:, :-1], dataset[:, -1]
+
+        sss = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
+        for train, test in sss.split(data, labels):
+            train_data, train_labels = data[train], labels[train]
+            test_data, test_labels = data[test], labels[test]
 
         train = TensorDataset(train_data, train_labels)
-        valid = TensorDataset(valid_data, valid_labels)
+        test = TensorDataset(test_data, test_labels)
 
-        self.train_loader = DataLoader(train, 
+        self.train_loader = DataLoader(dataset=train, 
                                        batch_size=self.config.batch_size, 
                                        shuffle=True,
                                        num_workers=self.config.data_loader_workers,
                                        pin_memory=self.config.pin_memory)
 
-        self.test_loader = DataLoader(valid,
+        self.test_loader = DataLoader(dataset=test,
                                       batch_size=config.test_batch_size,
                                       shuffle=False,
                                       num_workers=self.config.data_loader_workers,
@@ -45,7 +47,7 @@ class LoanPrediction:
                 education = {'Graduate': 1, 'Not Graduate': 0}
                 self_employed = {'Yes': 1, 'No': 0}
                 property_area = {'Rural': 0, 'Urban': 2, 'Semiurban': 1}
-                loan_status = {'Y': 1, 'N': 0}
+                loan_status = {'Y': 0, 'N': 1}
 
 
                 new_sample = sample.drop(['Loan_ID'], axis=1)
@@ -56,10 +58,15 @@ class LoanPrediction:
                 new_sample['Education'] = new_sample['Education'].map(education)
                 new_sample['Self_Employed'] = new_sample['Self_Employed'].map(self_employed)
                 new_sample['Property_Area'] = new_sample['Property_Area'].map(property_area)
-                if 'Loan_Status' in new_sample.columns:
-                    new_sample['Loan_Status'] = new_sample['Loan_Status'].map(loan_status)
+                new_sample['Loan_Status'] = new_sample['Loan_Status'].map(loan_status)
                 
-                new_sample = new_sample.dropna()
+                new_sample.dropna(inplace=True)
+
+                new_sample['ApplicantIncome'] = new_sample['CoapplicantIncome'] / new_sample['ApplicantIncome']
+                new_sample['LoanAmount'] = new_sample['LoanAmount'] * new_sample['Loan_Amount_Term']
+
+
+                new_sample.drop(['CoapplicantIncome', 'Loan_Amount_Term'], axis=1, inplace=True)
 
                 return new_sample.values
 

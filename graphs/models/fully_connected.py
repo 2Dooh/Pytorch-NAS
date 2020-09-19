@@ -9,7 +9,7 @@ class FullyConnected(Module):
         for i in range(len(config.layers_dim)-1):
             self.__setattr__('linear' + str(i+1), Linear(config.layers_dim[i], 
                                                          config.layers_dim[i+1]))
-            self.activations += [getattr(torch, config.activations[i])]
+            self.activations += [getattr(torch, config.activations[i], None)]
 
     def forward(self, x):
         for i, activation in enumerate(self.activations):
