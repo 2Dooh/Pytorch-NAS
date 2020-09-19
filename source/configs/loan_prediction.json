@@ -1,0 +1,44 @@
+{
+    "agent": "DeepLearningAgent",
+    "mode": "train",
+    
+    "cuda": true,
+    "seed": 1,
+
+    "batch_size": 64,
+    "test_batch_size": 1000,
+
+    "learning_rate": 0.001,
+
+    "momentum": 0.5,
+
+    "weight_decay": 0,
+    "beta1": 0.5,
+    "beta2": 0.999,
+
+    "max_epochs": 100,
+
+    "log_interval": 1,
+
+    "validate_every": 2,
+
+    "data_loader": "LoanPrediction",
+    "data_folder": "./data/loan_prediction",
+    "train_set": "train.csv",
+    "test_set": "test.csv",
+    "pin_memory": true,
+    "data_loader_workers": 1,
+
+
+    "model": "LogisticRegression",
+    "model_arguments": {
+        "input_size": 11,
+        "output_size": 1,
+        "activation": "tanh",
+        "layers_dim": [11, 500, 500, 1],
+        "activations": ["relu", "relu", "tanh"]
+    },
+
+    "criterion": "MSELoss",
+    "optimizer": "SGD"
+}
