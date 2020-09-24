@@ -13,25 +13,22 @@ class DeepLearningAgent(Agent):
     def __init__(self, config):
         super().__init__(config)
 
-        self.model = globals()[config.model](config.model_arguments)
-        self.criterion = getattr(nn, config.criterion, None)()
-        self.optimizer = getattr(optim, config.optimizer, None)(self.model.parameters(),
-                                                                lr=config.learning_rate,
-                                                                momentum=config.momentum,
-                                                                weight_decay=config.weight_decay)
-        self.data_loader = globals()[config.data_loader](config)
+        self.model = globals()[config['model']](**config['model_args'])
+        self.criterion = getattr(nn, config['criterion'], None)(**config['criterion_args'])
+        self.optimizer = getattr(optim, config['optimizer'], None)(self.model.parameters(),
+                                                                   **config['optimizer_args'])
+        self.data_loader = globals()[config['data_loader']](**config['data_loader_args'])
 
         # initialize counter
         self.current_epoch = 1
         self.current_iter = 1
-        self.best_metric = 0
 
         # set cuda flag
         self.has_cuda = torch.cuda.is_available()
-        if self.has_cuda and not self.config.cuda:
+        if self.has_cuda and not self.config['cuda']:
             print("WARNING: You have a CUDA device, so you should enable CUDA")
 
-        self.cuda = self.has_cuda and self.config.cuda
+        self.cuda = self.has_cuda and self.config['cuda']
 
         # get device
         self.device = device = torch.device("cuda:0" if self.cuda else "cpu")
@@ -41,7 +38,7 @@ class DeepLearningAgent(Agent):
         print("Program will run on *****{}*****".format(self.device))
 
         # set manual seed
-        self.manual_seed = config.seed
+        self.manual_seed = config['seed']
 
         # load checkpoint
         # self.load_checkpoint(self.config.checkpoint_file)
@@ -49,15 +46,22 @@ class DeepLearningAgent(Agent):
         # summary writer
         self.summary_writer = SummaryWriter()
 
+        # save path
+        self.save_path = './pretrained_weights'
+
     def run(self):
         try:
-            self.train()
+            if self.config['mode'] == 'train':
+                self.train()
+            elif self.config['mode'] == 'eval':
+                self.validate()
+            # self.finalize()
 
         except KeyboardInterrupt:
             print("You have entered CTRL+C.. Wait to finalize") 
 
     def train(self):
-        for epoch in range(self.config.max_epochs):
+        for epoch in range(self.config['max_epochs']):
             self.train_one_epoch()
             self.validate()
             self.current_epoch += 1
@@ -77,7 +81,7 @@ class DeepLearningAgent(Agent):
             train_loss += loss.item()
             loss.backward()
             self.optimizer.step()
-            if batch_idx % self.config.log_interval == 0:
+            if batch_idx % self.config['log_interval'] == 0:
                 print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                     self.current_epoch, 
                     n_trained, 
@@ -86,8 +90,9 @@ class DeepLearningAgent(Agent):
                     loss.item()))
 
             self.current_iter += 1
-
         self.summary_writer.add_scalar('Loss/train', train_loss/len(self.data_loader.train_loader.dataset), self.current_epoch)
+
+        
 
     def validate(self):
         self.model.eval()
@@ -99,9 +104,8 @@ class DeepLearningAgent(Agent):
 
                 output = self.model(data)
                 test_loss += self.criterion(output, target).item()  # sum up batch loss
-                pred = output
-                pred[pred <= 0.5] = 0
-                pred[pred > 0.5] = 1
+
+                pred = self.predict(output)
                 correct += pred.eq(target.view_as(pred)).sum().item()
 
         test_loss /= len(self.data_loader.test_loader.dataset)
@@ -113,11 +117,16 @@ class DeepLearningAgent(Agent):
             len(self.data_loader.test_loader.dataset),
             100. * correct / len(self.data_loader.test_loader.dataset)))
 
-    def predict(self):
-        pass
+    def predict(self, output):
+        if output.shape[1] == 1:
+            pred = output
+            pred[pred <= 0.5] = 0
+            pred[pred > 0.5] = 1
+            return pred
+        return output.max(dim=1, keepdims=True)[1]
 
     def finalize(self):
-        pass
+        torch.save(self.model.state_dict(), os.path.join(self.save_path, 'model.pth.tar'))
 
         
 

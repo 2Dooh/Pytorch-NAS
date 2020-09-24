@@ -3,10 +3,10 @@ from torch.nn import Module, Linear
 import torch
 
 class LogisticRegression(Module):
-    def __init__(self, config):
+    def __init__(self, input_size, activation, **kwargs):
         super(LogisticRegression, self).__init__()
-        self.linear = Linear(config.input_size, 1)
-        self.activation = getattr(torch, config.activation, None)
+        self.linear = Linear(input_size, 1)
+        self.activation = getattr(torch, activation, None)
 
     def forward(self, x):
         y_pred = self.activation(self.linear(x))
