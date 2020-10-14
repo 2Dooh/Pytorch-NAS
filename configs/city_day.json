@@ -1,0 +1,47 @@
+{
+    "agent": "DeepLearningAgent",
+    "mode": "train",
+    
+    "cuda": true,
+    "seed": 1,
+
+    "max_epochs": 300,
+    "verbose": true,
+    "report_freq": 16,
+    "validate_every": 20,
+
+    "data_loader": "CityDay",
+    "data_loader_args" : {
+        "data_folder": "./data/city_day",
+        "train_set": "city_day_AQI_train.csv",
+        "test_set": "city_day_AQI_test.csv",
+        "pin_memory": false,
+        "num_workers": 1,
+        "batch_size": 128,
+        "test_batch_size": 128
+    },
+    
+
+
+    "model": "FullyConnected",
+    "model_args": {
+        "input_size": 6,
+        "output_size": 1,
+        "activation": "relu",
+        "layers_dim": [44, 50, 100, 1],
+        "activations": ["relu", "relu", ""]
+    },
+
+    "criterion": "MSELoss",
+    "criterion_args": {
+    },
+
+    "optimizer": "SGD",
+    "optimizer_args": {
+        "lr": 0.0025,
+        "weight_decay": 3e-4,
+        "momentum": 0.9
+    },
+
+    "summary_writer": true
+}

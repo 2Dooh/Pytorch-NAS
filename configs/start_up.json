@@ -1,0 +1,46 @@
+{
+    "agent": "DeepLearningAgent",
+    "mode": "train",
+    
+    "cuda": false,
+    "seed": 1,
+
+    "max_epochs": 300,
+
+    "validate_every": 100,
+
+    "data_loader": "StartUp",
+    "data_loader_args" : {
+        "data_folder": "./data/start_up",
+        "train_set": "50_Startups_Train.csv",
+        "test_set": "50_Startups_Test.csv",
+        "pin_memory": false,
+        "num_workers": 1,
+        "batch_size": 20,
+        "test_batch_size": 1
+    },
+    
+
+
+    "model": "LinearRegression",
+    "model_args": {
+        "input_size": 6,
+        "output_size": 1,
+        "activation": "relu",
+        "layers_dim": [6, 20, 1],
+        "activations": ["relu", ""]
+    },
+
+    "criterion": "MSELoss",
+    "criterion_args": {
+    },
+
+    "optimizer": "SGD",
+    "optimizer_args": {
+        "lr": 0.025,
+        "weight_decay": 3e-2,
+        "momentum": 0.9
+    },
+
+    "summary_writer": true
+}
