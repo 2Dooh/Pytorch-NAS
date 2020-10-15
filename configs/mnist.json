@@ -1,0 +1,39 @@
+{
+    "agent": "DeepLearningAgent",
+    "mode": "train",
+    "cuda": true,
+    "seed": 1,
+    "max_epochs": 50,
+    "verbose": true,
+    "report_freq": 39,
+    "validate_every": 1,
+    
+    "data_loader": "Mnist",
+    "data_loader_args": {
+        "data_folder": "~/Downloads/mnist-python/",
+        "pin_memory": true,
+        "num_workers": 4,
+        "batch_size": 128,
+        "input_size": [3, 32, 32]
+    },
+
+    "criterion": "CrossEntropyLoss",
+    "criterion_args": {},
+
+    "optimizer": "SGD",
+    "optimizer_args": {
+        "lr": 0.025,
+        "momentum": 0.9,
+        "weight_decay": 3e-4
+    },
+    "scheduler": "CosineAnnealingLR",
+    "scheduler_args": {"T_max": 50, "eta_min": 0},
+
+    "model": "FullyConnected",
+    "model_args": {
+        "layers_dim": [784, 10],
+        "activations": ["relu"]
+    },
+
+    "summary_writer": true
+}

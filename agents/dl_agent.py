@@ -127,7 +127,7 @@ class DeepLearningAgent(Agent):
                 best_err = valid_err
                 self.save_checkpoint(self.model, 
                                      self.save_path, 
-                                     model_name='{}-Ep_{}-Err_{}'.format(self.model.__name__,
+                                     model_name='{}-Ep_{}-Err_{:.3f}'.format(self.model.__name__,
                                                                          self.current_epoch,
                                                                          valid_err))
 

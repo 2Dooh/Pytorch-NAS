@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from abc import ABC
+from abc import ABC, abstractmethod
 from graphs.models.custom_modules.computational_block import *
 
 class Decoder(ABC):

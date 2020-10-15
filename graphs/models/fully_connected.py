@@ -4,6 +4,7 @@ import torch.nn.functional as F
 class FullyConnected(Module):
     def __init__(self, layers_dim, activations, **kwargs):
         super(FullyConnected, self).__init__()
+        self.__name__ = 'FullyConnected'
         self.linears = ModuleList()
         for input_size, output_size in zip(layers_dim, layers_dim[1:]):
             self.linears += [Linear(input_size, output_size)]
