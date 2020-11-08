@@ -2,7 +2,10 @@ from torch.nn import Module, Linear, ModuleList, ModuleDict, Sequential
 import torch
 import torch.nn.functional as F
 class FullyConnected(Module):
-    def __init__(self, layers_dim, activations, **kwargs):
+    def __init__(self, 
+                 layers_dim, 
+                 activations, 
+                 **kwargs):
         super(FullyConnected, self).__init__()
         self.__name__ = 'FullyConnected'
         self.linears = ModuleList()

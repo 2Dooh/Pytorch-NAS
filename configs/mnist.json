@@ -2,7 +2,7 @@
     "agent": "DeepLearningAgent",
     "mode": "train",
     "cuda": true,
-    "seed": 1,
+    "seed": 3,
     "max_epochs": 50,
     "verbose": true,
     "report_freq": 39,
@@ -29,8 +29,11 @@
     "scheduler": "CosineAnnealingLR",
     "scheduler_args": {"T_max": 50, "eta_min": 0},
 
-    "model": "FullyConnected",
+    "model": "LogisticRegression",
     "model_args": {
+        "input_size": 784,
+        "output_size": 10,
+        "activation": "relu",
         "layers_dim": [784, 10],
         "activations": ["relu"]
     },

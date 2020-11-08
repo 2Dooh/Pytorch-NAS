@@ -1,4 +1,3 @@
-
 from agents import Agent
 from graphs.models import *
 from datasets import *
@@ -8,10 +7,7 @@ import torch.nn as nn
 import torch.optim.lr_scheduler as lr_scheduler
 from torch import optim
 from torch.utils.tensorboard import SummaryWriter
-import torch
 import os
-
-
 
 class DeepLearningAgent(Agent):
     def __init__(self,
