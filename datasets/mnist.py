@@ -1,4 +1,4 @@
-from torch.utils.data import DataLoader, TensorDataset, Dataset
+from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 import torch
@@ -19,7 +19,7 @@ class Mnist:
 
         train_data = datasets.MNIST(root=data_folder,
                                     train=True,
-                                    download=False,
+                                    download=True,
                                     transform=transform)
         test_data = datasets.MNIST(root=data_folder,
                                    train=False,

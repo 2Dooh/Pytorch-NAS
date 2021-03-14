@@ -1,6 +1,5 @@
 import torch
 from torch.nn import Module, Linear, Sequential
-from torch.nn.utils import prune
 from torch import nn
 
 class ResidualNode(Module):

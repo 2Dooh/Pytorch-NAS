@@ -1,4 +1,4 @@
-from .computational_block import *
+from .nsga_net_node import *
 
 class DensePhase(Module):
     pass

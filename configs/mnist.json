@@ -1,42 +1,69 @@
 {
-    "agent": "DeepLearningAgent",
-    "mode": "train",
-    "cuda": true,
-    "seed": 3,
-    "max_epochs": 50,
-    "verbose": true,
-    "report_freq": 39,
-    "validate_every": 1,
+    "agent": "Classifier",
+
+    "exp_cfg": {
+        "cuda": true,
+        "seed": 0,
+        "log_interval": 10,
+        "eval_freq": 1,
+        "deterministic": false,
+        "summary_writer": true,
+        "empty_cache": true
+    },
     
-    "data_loader": "Mnist",
-    "data_loader_args": {
-        "data_folder": "~/Downloads/mnist-python/",
-        "pin_memory": true,
-        "num_workers": 4,
-        "batch_size": 128,
-        "input_size": [3, 32, 32]
+    "data_loader": {
+        "name": "Mnist",
+        "kwargs": {
+            "data_folder": "~/Downloads/mnist-python/",
+            "pin_memory": true,
+            "num_workers": 4,
+            "batch_size": 16
+        }
+        
     },
 
-    "criterion": "CrossEntropyLoss",
-    "criterion_args": {},
-
-    "optimizer": "SGD",
-    "optimizer_args": {
-        "lr": 0.025,
-        "momentum": 0.9,
-        "weight_decay": 3e-4
-    },
-    "scheduler": "CosineAnnealingLR",
-    "scheduler_args": {"T_max": 50, "eta_min": 0},
-
-    "model": "LogisticRegression",
-    "model_args": {
-        "input_size": 784,
-        "output_size": 10,
-        "activation": "relu",
-        "layers_dim": [784, 10],
-        "activations": ["relu"]
+    "termination": {
+        "name": "MaxEpoch",
+        "kwargs": {
+            "n_epochs": 10
+        }
     },
 
-    "summary_writer": true
+    "criterion": {
+        "name": "CrossEntropyLoss",
+        "kwargs": {}
+    },
+
+    "optimizer": {
+        "name": "SGD",
+        "kwargs": {
+            "lr": 0.025,
+            "momentum": 0.9,
+            "weight_decay": 3e-4
+        }
+    },
+
+    "scheduler": {
+        "name": "CosineAnnealingLR",
+        "kwargs": {"T_max": 10, "eta_min": 0}
+    },
+
+    "model": {
+        "name": "MultiLayerPerceptron",
+        "kwargs": {
+            "layers_dim": [784, 20, 20, 10],
+            "activations": ["ReLU", "ReLU", "Tanh"]
+        }
+    },
+
+    "callbacks": {
+        "LearningRateScheduler": {},
+        "GradientClipper": {"clip_val": 5},
+        "ModelComplexity": {},
+        "ModelSaver": {"metrics": {"ErrorRate": {}}},
+        "ModelEvaluator": {"metrics": {
+            "ErrorRate": {},
+            "Loss": {}
+        }}
+    }
 }

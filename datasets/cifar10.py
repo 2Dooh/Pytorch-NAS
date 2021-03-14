@@ -1,6 +1,5 @@
 import torchvision.transforms as transforms
-from torch.utils.data import DataLoader, TensorDataset, Dataset
-import os
+from torch.utils.data import DataLoader
 import torchvision.datasets as datasets
 from utils.cutout import Cutout
 

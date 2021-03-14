@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from abc import ABC, abstractmethod
-from graphs.models.custom_modules.computational_block import *
+from .nsga_net_phase import *
 
 class Decoder(ABC):
     """

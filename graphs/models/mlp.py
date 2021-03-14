@@ -1,22 +1,31 @@
 from torch.nn import Module, Linear, ModuleList, ModuleDict, Sequential
-import torch
-import torch.nn.functional as F
-class FullyConnected(Module):
+import torch.nn as nn
+
+class MultiLayerPerceptron(Module):
     def __init__(self, 
                  layers_dim, 
                  activations, 
                  **kwargs):
-        super(FullyConnected, self).__init__()
-        self.__name__ = 'FullyConnected'
-        self.linears = ModuleList()
-        for input_size, output_size in zip(layers_dim, layers_dim[1:]):
-            self.linears += [Linear(input_size, output_size)]
-        self.activations = activations
+        super(MultiLayerPerceptron, self).__init__()
+        self.linears = ModuleList(
+            [Linear(in_features, out_features) \
+                for in_features, out_features in zip(layers_dim, layers_dim[1:])]
+        )
+
+        self.activations = ModuleDict([
+            [key, func] for key, func in zip(
+                activations, 
+                map(lambda f: getattr(nn, f, None)(), activations)
+            )
+        ])
+        self.list_activations = activations
 
     def forward(self, x):
-        for activation, linear in zip(self.activations, self.linears):
-            activation = getattr(F, activation, None)
-            x = activation(linear(x)) if activation else linear(x)
+        for linear, act in zip(self.linears, self.list_activations):
+            x = linear(x)
+            f = self.activations[act]
+            x = f(x) if f else x
+
         return x
     
     # Constructor

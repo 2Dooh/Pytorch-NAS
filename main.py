@@ -1,10 +1,8 @@
-from agents import *
-import json
+from utils.config import process_config
 
-config = None
-with open('./configs/mnist.json') as  json_file:
-    config = json.load(json_file)
-agent_constructor = globals()[config['agent']]
+from agents.classifier import Classifier
 
-agent = agent_constructor(**config)
-agent.run()
+path = './configs/mnist.json'
+config = process_config(path)
+agent = Classifier(config)
+agent.solve()
