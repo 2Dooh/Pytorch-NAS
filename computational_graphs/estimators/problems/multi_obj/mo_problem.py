@@ -21,3 +21,6 @@ class MultiObjectiveProblem(base.ProblemBase):
         for i, y_i in enumerate(Y):
             argopt = argopt if self.ranking_and_crowding_distance_compare(Y[argopt], y_i) else i
         return argopt
+
+    def _calc_pareto_front(self, n_points):
+        return None

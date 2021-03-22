@@ -7,3 +7,4 @@ tensorboardX
 torch==0.4.0
 torchvision==0.2.1
 easydict==1.9
+nats_bench

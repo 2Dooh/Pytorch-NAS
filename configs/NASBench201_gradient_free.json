@@ -2,18 +2,14 @@
     "agent": "NSGAII",
 
     "exp_cfg": {
-        "cuda": false,
         "seed": 0,
-        "log_interval": 10,
-        "deterministic": false,
-        "summary_writer": true,
-        "empty_cache": true
+        "summary_writer": true
     },
     
     "initializer": {
         "name": "RandomSampling",
         "kwargs": {
-            "size": 100
+            "size": 50
         }
     },
 
@@ -27,17 +23,10 @@
     },
 
     "crossover": {
-        "name": "OnePointCrossover",
+        "name": "UniformCrossover",
         "kwargs": {
             "prob": 0.9,
             "eta": 15
-        }
-    },
-
-    "mutator": {
-        "name": "UniformIntMutator",
-        "kwargs": {
-            "eta": 20
         }
     },
 
@@ -45,19 +34,30 @@
         "name": "TournamentSelector",
         "kwargs": {
             "t_size": 2,
-            "s_size": 100
+            "s_size": 50
         }
     },
 
     "problem": {
-        "name": "ZDT4",
+        "name": "NasBench201GradientFree",
         "kwargs": {
-            "n_params": 10
+            "dataset": "cifar10",
+            "max_nodes": 4,
+            "input_size": [32, 3, 32, 32],
+            "cuda": true
         }
     },
 
     "callbacks": {
-        "PopLogger": {}
+        "PopLogger": {},
+        "ParetoFrontProgress": {
+            "plot_freq": 1,
+            "labels": ["flops", "ntk + lrc"],
+            "loc": "upper right"
+        },
+        "PopSaver": {
+            "save_freq": 1
+        }
     }
 
     

@@ -120,6 +120,7 @@ class ParetoFrontProgress(EvoAlgCallback):
         self.n_points = n_points
         self.labels = labels
         self.plot_info = None
+        self.has_front = False
 
     def _begin_fit(self,  agent, **kwargs):
         super()._begin_fit(agent=agent, **kwargs)
@@ -133,24 +134,30 @@ class ParetoFrontProgress(EvoAlgCallback):
                 ]
         points = \
             self.agent.problem._calc_pareto_front(n_points=self.n_points)
-        n_obj = list(combinations(range(n_obj), r=2))
+
         points = list(combinations(points, r=2))
+        
+        n_obj = list(combinations(range(n_obj), r=2))
         ax_labels = list(combinations(self.labels, r=2))
+        if len(points) == 0:
+            points = [None] * len(ax_labels)
         fig_ax = []
         for i in range(len(ax_labels)):
             fig, ax = plt.subplots(num=i)
             fig_ax += [[fig, ax]]
-        self.plot_info = [n_obj, ax_labels, points, fig_ax]
+        self.plot_info = [n_obj, ax_labels, fig_ax, points]
+
             
 
     def _begin_next(self, **kwargs):
         if self.agent.current_gen % self.plot_freq == 0:
             f_pop = self.agent.eval_dict['f_pop_obj']
-            for i, (obj_pair, labels, data, fig_ax) in enumerate(zip(*self.plot_info)):
+            for i, (obj_pair, labels, fig_ax, data) in enumerate(zip(*self.plot_info)):
                 fig, ax = fig_ax
                 ax.set_xlabel(labels[0])
                 ax.set_ylabel(labels[1])
-                ax.plot(*data, label='pareto front', color='red')
+                if data:
+                    ax.plot(*data, label='pareto front', color='red')
                 ax.grid(True, linestyle='--')
                 ax.legend(loc=self.loc)
                 X = f_pop[:, obj_pair[0]]

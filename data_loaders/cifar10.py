@@ -1,11 +1,11 @@
 import torchvision.transforms as transforms
-from torch.utils.data import DataLoader, TensorDataset, Dataset
+from torch.utils.data import DataLoader
 import os
 import torchvision.datasets as datasets
 from utils.neural_net import Cutout
 
 
-class Cifar10:
+class CIFAR10:
     CIFAR_MEAN = [0.49139968, 0.48215827, 0.44653124]
     CIFAR_STD = [0.24703233, 0.24348505, 0.26158768]
     def __init__(self, 
