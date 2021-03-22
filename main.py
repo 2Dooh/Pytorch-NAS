@@ -1,8 +1,14 @@
 from utils.config import process_config
 
-from agents.classifier import Classifier
+import agents.evo_alg.mo_eas as agents
 
-path = './configs/mnist.json'
+import time
+
+name = 'NSGAII'
+path = './configs/NSGA_II.json'
 config = process_config(path)
-agent = Classifier(config)
+agent = getattr(agents, name)(config)
+start = time.time()
 agent.solve()
+end = time.time()
+print('exec time: {}'.format(end-start))

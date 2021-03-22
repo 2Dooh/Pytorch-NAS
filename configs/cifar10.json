@@ -12,12 +12,14 @@
     },
     
     "data_loader": {
-        "name": "Mnist",
+        "name": "Cifar10",
         "kwargs": {
-            "data_folder": "~/Downloads/mnist-python/",
+            "data_folder": "./data/cifar100-python",
             "pin_memory": true,
             "num_workers": 4,
-            "batch_size": 16
+            "batch_size": 96,
+            "cutout": true,
+            "cutout_length": 16
         }
         
     },
@@ -49,10 +51,17 @@
     },
 
     "model": {
-        "name": "MultiLayerPerceptron",
+        "name": "OldEvoNet",
         "kwargs": {
-            "layers_dim": [784, 20, 20, 10],
-            "activations": ["ReLU", "ReLU"]
+            "input_size": [3, 32, 32],
+            "output_size": 10,
+            "n_bits": {"kernel_sizes": 2, "pool_sizes": 1, "channels": 2},
+            "target_val": {
+                "kernel_sizes": [3, 5, 7, 9],
+                "pool_sizes": [1, 2],
+                "channels": [16, 32, 64, 128]},
+            "n_nodes": [6, 6, 6],
+            "genome": "0 0 1 0 0 0 0 0 1 0 0 1 0 0 0 0 0 0 0 0 1 1 1 0 0 1 0 1 1 1 0 0 0 1 0 0 0 0 0 0 1 1 1 0 1 1 1 1 1 1 1 1 1 0 1 1 1 1 1 1 0 1 1 0 0 0 0 0 0"
         }
     },
 

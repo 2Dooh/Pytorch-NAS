@@ -1,0 +1,66 @@
+{
+    "agent": "NSGAII",
+
+    "exp_cfg": {
+        "cuda": false,
+        "seed": 0,
+        "log_interval": 10,
+        "deterministic": false,
+        "summary_writer": true,
+        "empty_cache": true
+    },
+    
+    "initializer": {
+        "name": "RandomSampling",
+        "kwargs": {
+            "size": 100
+        }
+    },
+
+
+    "terminator": {
+        "name": "ConditionMet",
+        "kwargs": {
+            "counter": "current_gen",
+            "flag": 200
+        }
+    },
+
+    "crossover": {
+        "name": "SimulatedBinaryCrossover",
+        "kwargs": {
+            "prob": 0.9,
+            "eta": 15
+        }
+    },
+
+    "mutator": {
+        "name": "PolynomialMutator",
+        "kwargs": {
+            "eta": 20
+        }
+    },
+
+    "selector": {
+        "name": "TournamentSelector",
+        "kwargs": {
+            "t_size": 2,
+            "s_size": 100
+        }
+    },
+
+    "problem": {
+        "name": "ZDT4",
+        "kwargs": {
+            "n_params": 10
+        }
+    },
+
+    "callbacks": {
+        "PopLogger": {},
+        "PopSaver": {},
+        "ParetoFrontProgress": {}
+    }
+
+    
+}
