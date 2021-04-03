@@ -18,7 +18,7 @@
         "name": "ConditionMet",
         "kwargs": {
             "counter": "current_gen",
-            "flag": 200
+            "flag": 40
         }
     },
 
@@ -27,6 +27,19 @@
         "kwargs": {
             "prob": 0.9,
             "eta": 15
+        }
+    },
+
+    "mutator": {
+        "name": "BitFlipMutator",
+        "kwargs": {
+            "prob": 0.02
+        }
+    },
+
+    "repairer": {
+        "name": "NasBench201Repairer",
+        "kwargs": {
         }
     },
 
@@ -49,16 +62,13 @@
     },
 
     "callbacks": {
+        "PopSaver": {},
         "PopLogger": {},
         "ParetoFrontProgress": {
-            "plot_freq": 1,
-            "labels": ["flops", "ntk + lrc"],
-            "loc": "upper right"
-        },
-        "PopSaver": {
-            "save_freq": 1
+          "plot_freq": 1,
+          "labels": ["Flops", "Neural Tangent Kernels", "Linear Regions"],
+          "loc": "upper right"
         }
+        
     }
-
-    
 }

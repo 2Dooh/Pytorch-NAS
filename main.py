@@ -1,14 +1,16 @@
 from utils.config import process_config
 
-import agents.evo_alg.mo_eas as agents
+import agents.ea_agent as agents
 
 import time
 
+import logging
+
 name = 'NSGAII'
-path = './configs/NSGA_II.json'
-config = process_config(path)
-agent = getattr(agents, name)(config)
+path = './configs/NASBenchDict.json'
+config = process_config(path, console_log=False)
+agent = agents.EvoAgent(config)
 start = time.time()
 agent.solve()
 end = time.time()
-print('exec time: {}'.format(end-start))
+logging.info('exec time: {}'.format(end-start))

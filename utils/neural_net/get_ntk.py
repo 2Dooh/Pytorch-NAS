@@ -16,7 +16,7 @@ def get_ntk_n(xloader, networks, recalbn=0, train_mode=False, num_batch=-1):
             network.eval()
     ######
     grads = [[] for _ in range(len(networks))]
-    for i, (inputs, targets) in enumerate(xloader):
+    for i, (inputs, _) in enumerate(xloader):
         if num_batch > 0 and i >= num_batch: break
         inputs = inputs.cuda(device=device, non_blocking=True)
         for net_idx, network in enumerate(networks):
@@ -32,7 +32,6 @@ def get_ntk_n(xloader, networks, recalbn=0, train_mode=False, num_batch=-1):
                     if 'weight' in name and W.grad is not None:
                         grad.append(W.grad.view(-1).detach())
                 grads[net_idx].append(torch.cat(grad, -1))
-                network.zero_grad()
                 torch.cuda.empty_cache()
     ######
     grads = [torch.stack(_grads, 0) for _grads in grads]

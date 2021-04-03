@@ -1,3 +1,4 @@
+from numpy.lib.function_base import vectorize
 import computational_graphs.estimators.problems.multi_obj.mo_problem as base
 
 from numpy import pi
@@ -9,6 +10,7 @@ class ZDT4(base.MultiObjectiveProblem):
                          n_obj=2,
                          constraints=0,
                          type=np.float,
+                         vectorized=True,
                          **kwargs)
         xl = np.ones(self.n_params) * -5
         xu = np.ones(self.n_params) * 5
@@ -36,13 +38,18 @@ class ZDT4(base.MultiObjectiveProblem):
 
     @staticmethod
     def __h(f1, g):
-        return 1 - np.sqrt(f1/g)
+        return 1 - np.power(f1/g, 0.5)
 
     @staticmethod
     def _compare(y1, y2):
         not_dominated = y1 <= y2
         dominate = y1 < y2
         return not_dominated.all() and True in dominate
+
+    @staticmethod
+    def _compare_old(y1, y2):
+        return (y1[0] <= y2[0] and y1[1] <= y2[1]) and \
+               (y1[0] < y2[0] or y1[1] < y2[1])
 
     @staticmethod
     def _compare_vectorized(Y1, Y2):

@@ -6,10 +6,10 @@ class PSO(base.EAAgent):
 
     def _initialize(self, **kwargs):
         super()._initialize(**kwargs)
-        self.offsprings = self.population.clone()
+        self.offs = self.pop.clone()
         self.eval_dict = {}
         self.eval_dict['f_pop'] = self.evaluate(
-            population=self.population
+            pop=self.pop
         ) 
         self.eval_dict['f_offs'] = self.eval_dict['f_pop'].clone()
 
@@ -20,17 +20,17 @@ class PSO(base.EAAgent):
             Y2=self.eval_dict['f_offs']
         )
         if True in mask:
-            self.offsprings[mask] = self.population[mask]
+            self.offs[mask] = self.pop[mask]
             self.eval_dict['f_offs'][mask] = self.eval_dict['f_pop'][mask]
 
         elite_mask = self.select(
             f_pop=self.eval_dict['f_offs'],
             **kwargs
         )
-        elites = self.offsprings[elite_mask]
+        elites = self.offs[elite_mask]
         self._step(
-            pop=self.population,
-            offs=self.offsprings,
+            pop=self.pop,
+            offs=self.offs,
             selection_mask=mask,
             elites=elites, 
             **kwargs
@@ -38,7 +38,7 @@ class PSO(base.EAAgent):
 
         self._write_summary(**kwargs)
         self.eval_dict['f_pop'] = self.evaluate(
-            population=self.population,
+            pop=self.pop,
             **kwargs
         )
         super()._next(**kwargs)

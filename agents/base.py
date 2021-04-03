@@ -4,8 +4,6 @@ import logging
 
 from tensorboardX.writer import SummaryWriter
 
-import terminators
-
 
 
 class AgentBase(ABC):
@@ -13,13 +11,8 @@ class AgentBase(ABC):
         self.config = config
         self.logger = logging.getLogger(name=self.__class__.__name__)
 
-        self.termination = getattr(
-            terminators, self.config.terminator.name
-        )(**self.config.terminator.kwargs)
-
         self.summary_writer = None
         self.callback_handler = None
-        self.eval_dict = {}
 
 
     ### Public Methods ###
@@ -64,13 +57,13 @@ class AgentBase(ABC):
 
     def _setup_summary_writer(self, **kwargs):
         pass
+    def _next(self, **kwargs):
+        pass
     ### Virtual Methods ###
     
 
     ### Abstract Methods ###
-    @abstractmethod
-    def _next(self, **kwargs):
-        raise NotImplementedError
+    
     @abstractmethod
     def _write_summary(self, **kwargs):
         raise NotImplementedError

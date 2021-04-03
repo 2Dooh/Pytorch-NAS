@@ -16,7 +16,7 @@ class SimulatedBinaryCrossover(base.OperatorBase):
         # (n_inds, n_params) = pop.pop.shape
         (XL, XU) = self.problem.domain
         
-        indices = list(range(pop.shape[0]))
+        indices = np.arange(pop.shape[0])
 
         offs = []
         random.shuffle(indices)

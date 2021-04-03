@@ -33,4 +33,3 @@ class MB1X(base.OperatorBase):
             offs.append(offs2)
         
         return np.reshape(offs, pop.shape)
-        pass

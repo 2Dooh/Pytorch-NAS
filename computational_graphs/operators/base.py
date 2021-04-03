@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 
 import logging
 
@@ -7,6 +7,8 @@ class OperatorBase(ABC):
         self.problem = problem
         self.logger = logging.getLogger(name=self.__class__.__name__)
 
-    @abstractmethod
     def __call__(self, **kwargs):
-        raise NotImplementedError
+        if 'pop' in kwargs.keys():
+            return kwargs['pop']
+        else:
+            raise NotImplementedError

@@ -18,7 +18,9 @@ class RandomSampling(base.OperatorBase):
             np.random.rand(
                 self.size, 
                 self.problem.n_params, 
-            ).astype(self.problem.type)
+            )
         xl, xu = self.problem.domain
         pop = denormalize(pop, xl, xu)
+        if self.problem.type == np.int:
+            pop = pop.round().astype(np.int)
         return pop

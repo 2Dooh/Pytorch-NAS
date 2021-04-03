@@ -19,6 +19,8 @@ import callbacks.neural_net as callbacks
 
 import os
 
+import terminators
+
 
 class Mode(Enum):
     TRAIN = True
@@ -28,7 +30,10 @@ class Mode(Enum):
 class NNAgent(base.AgentBase):
     def __init__(self, config, **kwargs):
         super().__init__(config, **kwargs)
-
+        self.termination = getattr(
+            terminators, self.config.terminator.name
+        )(**self.config.terminator.kwargs)
+        self.eval_dict = {}
         # set cuda flag
         has_cuda = torch.cuda.is_available()
         if has_cuda and not self.config.exp_cfg.cuda:
