@@ -1,6 +1,6 @@
 import pymoo.factory as factory
 
-import computational_graphs.operators.repairers as repairers
+import pymoo_custom_modules.operators.repairers as repairers
 
 import logging
 
@@ -9,8 +9,8 @@ import copy
 from pymoo.model.repair import NoRepair
 from pymoo.model.duplicate import NoDuplicateElimination, DefaultDuplicateElimination
 
-import computational_graphs.estimators.problems as custom_problems
-import computational_graphs.operators.duplicate_eliminator as duplicate_eliminators
+import pymoo_custom_modules.problems as custom_problems
+import pymoo_custom_modules.operators.dupplicate as duplicate_eliminators
 
 import agents.base as base
 
@@ -110,6 +110,11 @@ class EvoAgent(base.AgentBase):
             self._finalize(**kwargs)
             return self.obj.result()
 
+    def _finalize(self, **kwargs):
+        super()._save_checkpoint(api=torch, 
+                                 obj=self.obj.result(), 
+                                 f=os.path.join(self.config.out_dir, 'result.pth.tar'))
+
     def _load_checkpoint(self, **kwargs):
         checkpoint = super()._load_checkpoint(api=torch, **kwargs)
         # self.pop = checkpoint['pop']
@@ -139,7 +144,7 @@ class EvoAgent(base.AgentBase):
         checkpoint['n_gen'] = self.obj.n_gen
         checkpoint['n_eval'] = self.obj.evaluator.n_eval
         filepath = '[{}] Gen_{}.pth.tar'.format(
-            self.__class__.__name__,
+            self.obj.__class__.__name__,
             self.obj.n_gen
         )
         super()._save_checkpoint(api=torch, 

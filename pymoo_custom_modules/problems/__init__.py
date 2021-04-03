@@ -1,8 +1,7 @@
 import os
 import sys
 
-from .crossovers import *
-from .mutators import *
+from .multi_obj import *
 
 path = os.path.dirname(os.path.abspath(__file__))
 
