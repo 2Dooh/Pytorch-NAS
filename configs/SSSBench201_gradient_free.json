@@ -1,6 +1,6 @@
 {
     "agent": "EvoAgent",
-    "exp_name": "NSGAII-FLOPS_VAL_ERR-UX-G200",
+    "exp_name": "[NSGAII-SSSBench201GradientFree]-3OBJ-UX-G200",
     "exp_cfg": {
         "seed": 0,
         "custom_problem": true, 
@@ -15,10 +15,7 @@
         }
     },
 
-    "eliminate_duplicates": {
-        "name": "Bench201DuplicateEliminator",
-        "kwargs": {}
-    },
+    "eliminate_duplicates": true,
     
     "sampling": "bin_random",
 
@@ -42,21 +39,8 @@
         }
     },
 
-    
-    "repair": "NasBench201Repairer",
-
-
-
-    "selector": {
-        "name": "TournamentSelector",
-        "kwargs": {
-            "t_size": 2,
-            "s_size": 50
-        }
-    },
-
     "problem": {
-        "name": "TSSBench201",
+        "name": "SSSBench201GradientFree",
         "kwargs": {
             "dataset": "cifar10"
         }
@@ -67,8 +51,8 @@
         "PopLogger": {},
         "ParetoFrontProgress": {
           "plot_freq": 1,
-          "labels": ["Flops", "Valid Error"],
-          "loc": "upper right"
+          "labels": ["Flops", "NTK",  "LR"],
+          "loc": "best"
         }
     }
 }

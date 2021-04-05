@@ -1,0 +1,76 @@
+{
+    "agent": "EvoAgent",
+    "exp_name": "TSS201-FLOPS_VAL_ERR-UX-G200-CIFAR10",
+    "exp_cfg": {
+        "seed": 0,
+        "custom_problem": true, 
+        "summary_writer": true
+    },
+
+    "algorithm": {
+        "name": "nsga2",
+        "kwargs": {
+            "pop_size": 50,
+            "n_offsprings": 50
+        }
+    },
+
+    "eliminate_duplicates": {
+        "name": "Bench201DuplicateEliminator",
+        "kwargs": {}
+    },
+    
+    "sampling": "bin_random",
+
+    "termination": {
+        "name": "n_gen",
+        "args": [200]
+    },
+
+    "crossover": {
+        "name": "(real|bin|int)_ux",
+        "kwargs": {
+            "prob": 0.9
+        }
+    },
+
+    
+    "mutation": {
+        "name": "bin_bitflip",
+        "kwargs": {
+            "prob": 0.02
+        }
+    },
+
+    
+    "repair": "NasBench201Repairer",
+
+
+
+    "selector": {
+        "name": "TournamentSelector",
+        "kwargs": {
+            "t_size": 2,
+            "s_size": 50
+        }
+    },
+
+    "problem": {
+        "name": "TSSBench201",
+        "kwargs": {
+            "dataset": "cifar10"
+        }
+    },
+
+    "callbacks": {
+        "PopSaver": {},
+        "PopLogger": {},
+        "ParetoFrontProgress": {
+          "plot_freq": 1,
+          "labels": ["Flops", "Valid Error"],
+          "loc": "upper right"
+        }
+    },
+
+    "checkpoint": "experiments/TSS201-FLOPS_VAL_ERR-UX-G200-CIFAR10/checkpoints/[NSGA2_TSSBench201] G-123.pth.tar"
+}

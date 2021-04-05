@@ -1,14 +1,14 @@
 {
+    "agent": "EvoAgent",
     "algorithm": {
         "name": "nsga2",
         "kwargs": {
             "pop_size": 100,
-            "n_offsprings": 100,
-            "eliminate_duplicates": true
+            "n_offsprings": 100
         }
     },
 
-    "exp_name": "NSGA_Test_Save",
+    "exp_name": "ZDT4",
     "exp_cfg": {
         "seed": 0,
         "custom_problem": false, 
@@ -16,6 +16,8 @@
     },
     
     "sampling": "real_random",
+
+    "eliminate_duplicates": true,
 
     "termination": {
         "name": "n_gen",
@@ -38,7 +40,7 @@
     },
 
     "problem": {
-        "name": "zdt4",
+        "name": "zdt6",
         "kwargs": {
             "n_var": 10
         }
@@ -50,5 +52,5 @@
         "PopSaver": {}
     },
 
-    "checkpoint": "experiments/NSGA_Test/checkpoints/[EvoAgent] Gen_15.pth.tar"
+    "checkpoint": "experiments/ZDT4/checkpoints/[NSGA2_ZDT6] G-5.npy"
 }

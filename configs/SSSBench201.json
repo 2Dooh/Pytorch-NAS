@@ -1,0 +1,59 @@
+{
+    "agent": "EvoAgent",
+    "exp_name": "SSS201-FLOPS_VAL_ERR-UX-G200-CIFAR10",
+    "exp_cfg": {
+        "seed": 0,
+        "custom_problem": true, 
+        "summary_writer": true
+    },
+
+    "algorithm": {
+        "name": "nsga2",
+        "kwargs": {
+            "pop_size": 50,
+            "n_offsprings": 50
+        }
+    },
+
+    "eliminate_duplicates": true,
+    
+    "sampling": "bin_random",
+
+    "termination": {
+        "name": "n_gen",
+        "args": [200]
+    },
+
+    "crossover": {
+        "name": "(real|bin|int)_ux",
+        "kwargs": {
+            "prob": 0.9
+        }
+    },
+
+    
+    "mutation": {
+        "name": "bin_bitflip",
+        "kwargs": {
+            "prob": 0.02
+        }
+    },
+
+
+    "problem": {
+        "name": "SSSBench201",
+        "kwargs": {
+            "dataset": "cifar10"
+        }
+    },
+
+    "callbacks": {
+        "PopSaver": {},
+        "PopLogger": {},
+        "ParetoFrontProgress": {
+          "plot_freq": 1,
+          "labels": ["Flops", "Valid Error"],
+          "loc": "upper right"
+        }
+    }
+}

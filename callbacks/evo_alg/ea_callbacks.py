@@ -140,8 +140,7 @@ class ParetoFrontProgress(base.CallbackBase):
                             self.agent.obj.__class__.__name__,
                             self.agent.problem.__class__.__name__,
                             self.agent.obj.n_gen,
-                            labels[0],
-                            labels[1]
+                            *labels
                         )
                     )
                 )

@@ -35,7 +35,7 @@ class EvoAgent(base.AgentBase):
             if isinstance(config.eliminate_duplicates, bool):
                 if config.eliminate_duplicates:
                     self.eliminate_duplicates = \
-                        DefaultDuplicateElimination(**config.eliminate_duplicates.kwargs)
+                        DefaultDuplicateElimination()
             else:
                 self.eliminate_duplicates = \
                     getattr(duplicate_eliminators, 
@@ -87,9 +87,11 @@ class EvoAgent(base.AgentBase):
         super()._initialize(**kwargs)
 
         self.obj = copy.deepcopy(self.algorithm)
+        self.obj.setup(self.problem, 
+                       termination=self.termination, 
+                       seed=self.config.exp_cfg.seed)
         if 'checkpoint' in self.config:
-            self._load_checkpoint(path=self.config.checkpoint, **kwargs)
-        self.obj.setup(self.problem, termination=self.termination, seed=self.config.exp_cfg.seed)
+            self._load_checkpoint(f=self.config.checkpoint, **kwargs)
 
     def solve(self, **kwargs):
         try:
@@ -101,58 +103,54 @@ class EvoAgent(base.AgentBase):
                 self._write_summary(**kwargs)
                 self.callback_handler.after_next(**kwargs)
             self._finalize(**kwargs)
-            return self.obj.result()
+
         except KeyboardInterrupt:
             self.logger.info('You have entered CTRL+C... Wait to finalize')
             self._finalize(**kwargs)
         except Exception as e:
             self.logger.error(e, exc_info=True)
             self._finalize(**kwargs)
-            return self.obj.result()
 
     def _finalize(self, **kwargs):
+        result = self.obj.result()
+        result.problem = None
+        
         super()._save_checkpoint(api=torch, 
-                                 obj=self.obj.result(), 
+                                 obj=result, 
                                  f=os.path.join(self.config.out_dir, 'result.pth.tar'))
 
     def _load_checkpoint(self, **kwargs):
-        checkpoint = super()._load_checkpoint(api=torch, **kwargs)
-        # self.pop = checkpoint['pop']
-        # self.offs = checkpoint['offs']
-        # self.current_gen = checkpoint['gen']
-        # self.eval_dict = checkpoint['eval_dict']
-        self.obj = checkpoint['obj']
-        self.obj.n_gen = checkpoint['n_gen']
-        self.obj.evaluator.n_eval = checkpoint['n_eval']
+        try:
+            checkpoint = \
+                super()._load_checkpoint(api=torch, **kwargs)
+        except:
+            self.logger.warn('Checkpoint not found, proceed algorithm from scratch!')
+            return
 
-        self.obj.eliminate_duplicates = self.eliminate_duplicates
-        self.obj.initialization.eliminate_duplicates = self.eliminate_duplicates
-        self.obj.mating.eliminate_duplicates = self.eliminate_duplicates
+        self.obj = checkpoint['obj']
+
+        if hasattr(self.obj.problem, 'can_pickle') and not self.obj.problem.can_pickle:
+            self.obj.problem = self.problem
+
         return checkpoint
 
-    def _save_checkpoint(self, checkpoint={}, **kwargs):
-        # checkpoint['gen'] = self.current_gen
-        # checkpoint['pop'] = self.pop
-        # checkpoint['offs'] = self.offs
-        # checkpoint['eval_dict'] = self.eval_dict
-        
-        self.obj.eliminate_duplicates = None
-        self.obj.initialization.eliminate_duplicates = None
-        self.obj.mating.eliminate_duplicates = None
-
+    def _save_checkpoint(self, checkpoint={}, **kwargs):        
+        if hasattr(self.obj.problem, 'can_pickle') and not self.obj.problem.can_pickle:
+            self.obj.problem, unpickled_obj = self.obj.problem._get_pickle_obj()
         checkpoint['obj'] = self.obj
-        checkpoint['n_gen'] = self.obj.n_gen
-        checkpoint['n_eval'] = self.obj.evaluator.n_eval
-        filepath = '[{}] Gen_{}.pth.tar'.format(
+        if self.obj.n_gen == 1:
+            checkpoint['algorithm'] = self.algorithm
+        filepath = '[{}_{}] G-{}.pth.tar'.format(
             self.obj.__class__.__name__,
+            self.problem.__class__.__name__,
             self.obj.n_gen
         )
         super()._save_checkpoint(api=torch, 
                                  obj=checkpoint, 
                                  f=os.path.join(self.config.checkpoint_dir, filepath))
-        self.obj.eliminate_duplicates = self.eliminate_duplicates
-        self.obj.initialization.eliminate_duplicates = self.eliminate_duplicates
-        self.obj.mating.eliminate_duplicates = self.eliminate_duplicates
+
+        if hasattr(self.obj.problem, 'can_pickle') and not self.obj.problem.can_pickle:
+            self.obj.problem = self.obj.problem._load(unpickled_obj)
 
     
 

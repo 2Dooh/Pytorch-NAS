@@ -39,8 +39,8 @@ class AgentBase(ABC):
             self.summary_writer = SummaryWriter(log_dir=self.config.summary_dir)
             self._setup_summary_writer(**kwargs)
 
-    def _load_checkpoint(self, api, path, **kwargs):
-        checkpoint = api.load(path, **kwargs)
+    def _load_checkpoint(self, api, **kwargs):
+        checkpoint = api.load(**kwargs)
         return checkpoint
 
     def _finalize(self, **kwargs):

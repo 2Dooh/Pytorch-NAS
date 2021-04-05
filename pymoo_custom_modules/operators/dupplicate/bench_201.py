@@ -5,6 +5,8 @@ import numpy as np
 import logging
 
 class Bench201DuplicateEliminator(ElementwiseDuplicateElimination):
+    def __init__(self, **kwargs) -> None:
+        super().__init__(cmp_func=self.is_equal, **kwargs)
 
     def is_equal(self, a, b):
         x, y = self.__decode(a.get('X')), self.__decode(b.get('X'))
