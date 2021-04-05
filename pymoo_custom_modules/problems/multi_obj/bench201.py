@@ -47,7 +47,7 @@ class NasBench201(Problem):
         self.search_space = search_space
         self.dataset = dataset
         self.obj_list = obj_list
-        self.api = create(None, self.search_space, fast_mode=True, verbose=False)
+        self.api = create('NATS-tss-v1_0-3ffb9-simple', self.search_space, fast_mode=True, verbose=False)
         self.predefined_ops = np.array(ops.NAS_BENCH_201)
         self.dataset = dataset.lower()
         self.model = self._construct_problem()

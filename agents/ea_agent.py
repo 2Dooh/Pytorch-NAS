@@ -89,7 +89,8 @@ class EvoAgent(base.AgentBase):
         self.obj = copy.deepcopy(self.algorithm)
         self.obj.setup(self.problem, 
                        termination=self.termination, 
-                       seed=self.config.exp_cfg.seed)
+                       seed=self.config.exp_cfg.seed,
+                       save_history=True)
         if 'checkpoint' in self.config:
             self._load_checkpoint(f=self.config.checkpoint, **kwargs)
 
