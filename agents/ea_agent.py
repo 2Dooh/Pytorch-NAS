@@ -90,7 +90,7 @@ class EvoAgent(base.AgentBase):
         self.obj.setup(self.problem, 
                        termination=self.termination, 
                        seed=self.config.exp_cfg.seed,
-                       save_history=True)
+                       save_history=False)
         if 'checkpoint' in self.config:
             self._load_checkpoint(f=self.config.checkpoint, **kwargs)
 
@@ -113,9 +113,8 @@ class EvoAgent(base.AgentBase):
             self._finalize(**kwargs)
 
     def _finalize(self, **kwargs):
-        result = self.obj.result()
+        result = self.obj.result()   
         result.problem = None
-        
         super()._save_checkpoint(api=torch, 
                                  obj=result, 
                                  f=os.path.join(self.config.out_dir, 'result.pth.tar'))
@@ -129,16 +128,14 @@ class EvoAgent(base.AgentBase):
             return
 
         self.obj = checkpoint['obj']
-
-        if hasattr(self.obj.problem, 'can_pickle') and not self.obj.problem.can_pickle:
-            self.obj.problem = self.problem
-
+        self.obj.problem = self.problem
         return checkpoint
 
-    def _save_checkpoint(self, checkpoint={}, **kwargs):        
-        if hasattr(self.obj.problem, 'can_pickle') and not self.obj.problem.can_pickle:
-            self.obj.problem, unpickled_obj = self.obj.problem._get_pickle_obj()
+    def _save_checkpoint(self, checkpoint={}, **kwargs):    
+        problem = self.obj.problem  
+        self.obj.problem = None  
         checkpoint['obj'] = self.obj
+        checkpoint['evaluated_arch'] = problem.score_dict
         if self.obj.n_gen == 1:
             checkpoint['algorithm'] = self.algorithm
         filepath = '[{}_{}] G-{}.pth.tar'.format(
@@ -149,9 +146,7 @@ class EvoAgent(base.AgentBase):
         super()._save_checkpoint(api=torch, 
                                  obj=checkpoint, 
                                  f=os.path.join(self.config.checkpoint_dir, filepath))
-
-        if hasattr(self.obj.problem, 'can_pickle') and not self.obj.problem.can_pickle:
-            self.obj.problem = self.obj.problem._load(unpickled_obj)
+        self.obj.problem = problem
 
     
 

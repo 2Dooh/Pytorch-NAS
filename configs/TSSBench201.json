@@ -1,6 +1,6 @@
 {
     "agent": "EvoAgent",
-    "exp_name": "TSS201-FLOPS_VAL_ERR-UX-G200-CIFAR10",
+    "exp_name": "[NSGA2-TSS-CIFAR10][FLOPS_VALID]-UX-G200-S888-25EP",
     "exp_cfg": {
         "seed": 0,
         "custom_problem": true, 
@@ -58,19 +58,18 @@
     "problem": {
         "name": "TSSBench201",
         "kwargs": {
-            "dataset": "cifar10"
+            "dataset": "cifar10-valid",
+            "iepoch": 24
         }
     },
 
     "callbacks": {
-        "PopSaver": {},
         "PopLogger": {},
+        "PopSaver": {},
         "ParetoFrontProgress": {
           "plot_freq": 1,
           "labels": ["Flops", "Valid Error"],
           "loc": "upper right"
         }
-    },
-
-    "checkpoint": "experiments/TSS201-FLOPS_VAL_ERR-UX-G200-CIFAR10/checkpoints/[NSGA2_TSSBench201] G-123.pth.tar"
+    }
 }

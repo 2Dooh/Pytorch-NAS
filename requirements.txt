@@ -8,3 +8,4 @@ torchvision==0.9.0
 easydict==1.9
 nats_bench==1.2
 pymoo==0.4.2.2
+pandas==1.2.3

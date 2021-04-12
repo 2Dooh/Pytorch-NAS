@@ -89,7 +89,7 @@ class ParetoFrontProgress(base.CallbackBase):
 
     def _begin_fit(self,  agent, **kwargs):
         super()._begin_fit(agent=agent, **kwargs)
-        os.makedirs(os.path.join(self.agent.config.checkpoint_dir, 'gifs'), exist_ok=True)
+
         n_obj = self.agent.problem.n_obj  
         if not self.labels:
             self.labels = \
@@ -134,9 +134,8 @@ class ParetoFrontProgress(base.CallbackBase):
                 ax.grid(True, linestyle='--')
                 fig.savefig(
                     os.path.join(
-                        self.agent.config.checkpoint_dir,
-                        'gifs',
-                        '[{}][{}]_Gen_{:0>3d}_{}-{}.jpg'.format(
+                        self.agent.config.gif_dir,
+                        '[{}][{}]_G_{:0>3d}_{}-{}.jpg'.format(
                             self.agent.obj.__class__.__name__,
                             self.agent.problem.__class__.__name__,
                             self.agent.obj.n_gen,

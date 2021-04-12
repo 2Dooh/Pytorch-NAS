@@ -1,6 +1,6 @@
 {
     "agent": "EvoAgent",
-    "exp_name": "SSS201-FLOPS_VAL_ERR-UX-G200-CIFAR10",
+    "exp_name": "[NSGA2-SSS-CIFAR10][FLOPS_TEST]-UX-G200-S0-REMOVE_DUP",
     "exp_cfg": {
         "seed": 0,
         "custom_problem": true, 
@@ -52,7 +52,7 @@
         "PopLogger": {},
         "ParetoFrontProgress": {
           "plot_freq": 1,
-          "labels": ["Flops", "Valid Error"],
+          "labels": ["Flops", "Test Error"],
           "loc": "upper right"
         }
     }

@@ -58,14 +58,18 @@ def get_err(X, problem, hp):
         indices += [idx_x]
     # indices = list(set(indices))
     # for idx_x in indices:
-        flop = problem.api.get_cost_info(idx_x, 'ImageNet16-120', hp=hp)['flops']
+        flop = problem.api.get_cost_info(idx_x, dataset, hp=hp)['flops']
         flops += [flop]
         t_err = \
-            100 - problem.api.get_more_info(idx_x, 'ImageNet16-120', hp=hp, is_random=False)['test-accuracy']
+            100 - problem.api.get_more_info(idx_x, dataset, hp=hp, is_random=False)['test-accuracy']
         v_err = \
-            100 - problem.api.get_more_info(idx_x, 'ImageNet16-120', hp='12', is_random=False)['train-accuracy']
+            100 - problem.api.get_more_info(idx_x, 
+                                            dataset+'-valid' if dataset == 'cifar10' else dataset, 
+                                            iepoch=24, 
+                                            hp=hp, 
+                                            is_random=False)['{}-accuracy'.format('valid' if dataset == 'cifar10' else 'valtest')]
         v_err_max = \
-            100 - problem.api.get_more_info(idx_x, 'ImageNet16-120', hp=hp, is_random=False)['train-accuracy']
+            100 - problem.api.get_more_info(idx_x, dataset, hp=hp, is_random=False)['train-accuracy']
         v_err_X += [v_err]
         v_err_X_max += [v_err_max]
         t_err_X += [t_err]
@@ -101,17 +105,17 @@ tss_bench = TSSBench201(dataset)
 sss_bench = SSSBench201(dataset)
 
 # A = torch.load('experiments/[NSGAII] Gen_200.pth_11.tar')
-A = torch.load('experiments/[NSGA2_TSSBench201] G-200.pth.tar')
-B = torch.load('experiments/[NSGA2] Gen_200.pth.tar')
-front = torch.load('experiments/[ImageNet16-120-tss].pth.tar')
-F = []
-for cost_info, more_info in front['obj']:
-    flops = cost_info['flops']
-    test_err = 100 - more_info['test-accuracy']
-    F += [[flops, test_err]]
+A = torch.load('experiments/[NSGA2-TSS-CIFAR10][FLOPS_VALID]-UX-G200-S888-25EP/checkpoints/[NSGA2_TSSBench201] G-12.pth.tar')
+B = torch.load('experiments/3-obj-fixed-dup-allow/[NSGA2_TSSBench201GradientFree] G-200.pth.tar')
+F = np.load('bench_pf/[cifar10-tss][FLOPS-TEST_ERR]-200EP.npy')
+# F = []
+# for cost_info, more_info in front['obj']:
+#     flops = cost_info['flops']
+#     test_err = 100 - more_info['test-accuracy']
+#     F += [[flops, test_err]]
 
-F = np.array(F).reshape((len(F), -1))
-front = non_dominated_rank(F)
+# F = np.array(F).reshape((len(F), -1))
+# front = non_dominated_rank(F)
 # plot_front(B['eval_dict']['f_pop_obj'][:, 0],
 #            B['eval_dict']['f_pop_obj'][:, 1],
 #            marker='x',
@@ -134,37 +138,37 @@ plot_front(flops_B, v_err_B,
            marker='x', 
            linestyle='--', 
            color='green',
-           label='(G:{}) Val Err 12 epochs [FLOPS-NTK-LR]'.format(B['obj'].n_gen))
+           label='(G:{}) Test Err 25 epochs [FLOPS-NTK-LR]'.format(B['obj'].n_gen))
 plot_front(flops_A, v_err_A, 
            marker='o', 
            linestyle='--', 
            color='blue',
-           label='(G:{}) Val Err 12 epochs [FLOPS-VALID_ERR]'.format(A['obj'].n_gen))
+           label='(G:{}) Test Err 25 epochs [FLOPS-VALID_ERR]'.format(A['obj'].n_gen))
 
 plot_front(flops_B, t_err_B, 
            marker='v', 
            linestyle='--', 
            color='cyan',
-           label='(G:{}) Test Err [FLOPS-NTK-LR]'.format(B['obj'].n_gen))
+           label='(G:{}) Test Err 200 epochs [FLOPS-NTK-LR]'.format(B['obj'].n_gen))
 plot_front(flops_A, t_err_A, 
            marker='^', 
            linestyle='--', 
            color='red',
-           label='(G:{}) Test Err [FLOPS-VALID_ERR]'.format(A['obj'].n_gen))
+           label='(G:{}) Test Err 200 epochs [FLOPS-VALID_ERR]'.format(A['obj'].n_gen))
 
-plot_front(flops_A, v_err_A_max, 
-           marker='o', 
-           linestyle='-', 
-           color='purple',
-           label='(G:{}) Val Err 200 epochs [FLOPS-VALID_ERR]'.format(A['obj'].n_gen))
+# plot_front(flops_A, v_err_A_max, 
+#            marker='o', 
+#            linestyle='-', 
+#            color='purple',
+#            label='(G:{}) Val Err 200 epochs [FLOPS-VALID_ERR]'.format(A['obj'].n_gen))
 
-plot_front(flops_B, v_err_B_max, 
-           marker='x', 
-           linestyle='-', 
-           color='olive',
-           label='(G:{}) Val Err 200 epochs [FLOPS-NTK-LR]'.format(B['obj'].n_gen))
+# plot_front(flops_B, v_err_B_max, 
+#            marker='x', 
+#            linestyle='-', 
+#            color='olive',
+#            label='(G:{}) Val Err 200 epochs [FLOPS-NTK-LR]'.format(B['obj'].n_gen))
 
-plot_front(front[:, 0], front[:, 1], 
+plot_front(F[:, 0], F[:, 1], 
            marker='*', 
            linestyle='-', 
            color='black',

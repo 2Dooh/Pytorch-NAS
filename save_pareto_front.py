@@ -2,25 +2,7 @@ import numpy as np
 
 import torch
 
-def is_dominated(x, y):
-    not_dominated = x <= y
-    dominate = x < y
-
-    return np.logical_and(
-        not_dominated.all(axis=1),
-        dominate.any(axis=1)
-    )
-
-def domination_count(F_pop):
-        count = np.empty((F_pop.shape[0],))
-        for i in range(F_pop.shape[0]):
-            count[i] = is_dominated(F_pop, F_pop[i]).sum()
-        return count
-
-def non_dominated_rank(f_pop):
-        count = domination_count(f_pop)
-
-        return f_pop[count == 0]
+from utils.moeas.non_dominated_rank import non_dominated_rank
 
 def get_objective_space(obj):
     F = []
@@ -32,10 +14,10 @@ def get_objective_space(obj):
     F = np.reshape(F, (len(F), -1))
     return F
 
-path = 'experiments/[cifar10-sss].pth.tar'
+path = 'experiments/[cifar100-tss-200].pth.tar'
 obj = torch.load(path)['obj']
 F = get_objective_space(obj)
 front = non_dominated_rank(F)
 
-name = 'bench_pf/[cifar10-sss][FLOPS-VAL_ERR]'
+name = 'bench_pf/[cifar100-tss][FLOPS-TEST_ERROR]-200EP'
 np.save(name, front)

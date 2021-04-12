@@ -26,12 +26,14 @@ def process_config(json_file: str, console_log=True) -> Tuple[edict, Dict]:
     config.checkpoint_dir = os.path.join('experiments', config.exp_name, 'checkpoints/')
     config.out_dir = os.path.join('experiments', config.exp_name, 'out/')
     config.log_dir = os.path.join('experiments', config.exp_name, 'logs/')
+    config.gif_dir = os.path.join('experiments', config.exp_name, 'gifs/')
 
     makedirs(
         config.summary_dir,
         config.checkpoint_dir,
         config.out_dir,
-        config.log_dir
+        config.log_dir,
+        config.gif_dir
     )
 
     setup_logging(config.log_dir, console_log)
