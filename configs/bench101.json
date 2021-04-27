@@ -1,6 +1,6 @@
 {
     "agent": "EvoAgent",
-    "exp_name": "[NSGA2-TSS-CIFAR10][FLOPS_VALID]-UX-G200-S777-25EP",
+    "exp_name": "[NSGA2-101][FLOPS_VALID]-UX-G200-S00-25EP",
     "exp_cfg": {
         "seed": 0,
         "custom_problem": true, 
@@ -15,7 +15,10 @@
         }
     },
 
-    "eliminate_duplicates": true,
+    "eliminate_duplicates": {
+        "name": "Bench101DuplicateEliminator",
+        "kwargs": {}
+    },
     
     "sampling": "bin_random",
 
@@ -39,10 +42,7 @@
         }
     },
 
-    
-    "repair": "NasBench201Repairer",
-
-
+    "repair": "Bench101Repairer",
 
     "selector": {
         "name": "TournamentSelector",
@@ -53,10 +53,10 @@
     },
 
     "problem": {
-        "name": "TSSBench201",
+        "name": "Bench101",
         "kwargs": {
-            "dataset": "cifar10-valid",
-            "iepoch": 24
+            "epoch": 36,
+            "elementwise_evaluation": true
         }
     },
 

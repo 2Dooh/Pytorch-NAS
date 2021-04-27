@@ -1,6 +1,6 @@
 {
     "agent": "EvoAgent",
-    "exp_name": "[NSGA2-TSS-CIFAR10][FLOPS_VALID]-UX-G200-S777-25EP",
+    "exp_name": "[NSGA2-TSS-CIFAR10][FLOPS_PRED]-UX-G200",
     "exp_cfg": {
         "seed": 0,
         "custom_problem": true, 
@@ -15,7 +15,10 @@
         }
     },
 
-    "eliminate_duplicates": true,
+    "eliminate_duplicates": {
+        "name": "Bench201DuplicateEliminator",
+        "kwargs": {}
+    },
     
     "sampling": "bin_random",
 
@@ -42,21 +45,11 @@
     
     "repair": "NasBench201Repairer",
 
-
-
-    "selector": {
-        "name": "TournamentSelector",
-        "kwargs": {
-            "t_size": 2,
-            "s_size": 50
-        }
-    },
-
     "problem": {
-        "name": "TSSBench201",
+        "name": "TSSSurrogateModel",
         "kwargs": {
-            "dataset": "cifar10-valid",
-            "iepoch": 24
+            "dataset": "cifar10",
+            "num_workers": 2
         }
     },
 
@@ -65,7 +58,7 @@
         "PopSaver": {},
         "ParetoFrontProgress": {
           "plot_freq": 1,
-          "labels": ["Flops", "Valid Error"],
+          "labels": ["Flops", "Predicted Test Error"],
           "loc": "upper right"
         }
     }

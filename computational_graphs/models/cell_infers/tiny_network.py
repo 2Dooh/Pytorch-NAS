@@ -7,7 +7,7 @@ from pdb import set_trace as bp
 # The macro structure for architectures in NAS-Bench-201
 class TinyNetwork(nn.Module):
 
-    def __init__(self, C, N, genotype, num_classes, C_in=3, depth=-1):
+    def __init__(self, C, N, genotype, num_classes, C_in=3, depth=-1, use_stem=True):
         super(TinyNetwork, self).__init__()
         self._C               = C
         self._layerN          = N
@@ -15,7 +15,7 @@ class TinyNetwork(nn.Module):
         # depth: number of cells to forward
 
         self.stem = nn.Sequential(nn.Conv2d(C_in, C, kernel_size=3, padding=1, bias=False),
-                                  nn.BatchNorm2d(C))
+                                  nn.BatchNorm2d(C)) if use_stem else nn.Identity()
 
         layer_channels   = [C    ] * N + [C*2 ] + [C*2  ] * N + [C*4 ] + [C*4  ] * N
         layer_reductions = [False] * N + [True] + [False] * N + [True] + [False] * N

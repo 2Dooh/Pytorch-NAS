@@ -17,7 +17,7 @@ def get_objective_space(obj):
 path = 'experiments/[cifar100-tss-200].pth.tar'
 obj = torch.load(path)['obj']
 F = get_objective_space(obj)
-front = non_dominated_rank(F)
+front, indices = non_dominated_rank(F)
 
 name = 'bench_pf/[cifar100-tss][FLOPS-TEST_ERROR]-200EP'
 np.save(name, front)

@@ -248,8 +248,10 @@ class ModelEvaluator(NeuralNetCallback):
         self.current_iterations += pred.size(0)
         for metric in self.metrics:
             metric._update(step=step, pred=pred, loss=loss.item(), **kwargs)
+        
 
         print_flag = self.n_batches // self.agent.config.exp_cfg.log_interval
+        print_flag = max(1, print_flag)
 
         if (step+1) % print_flag == 0:
             message = \

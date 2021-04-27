@@ -23,17 +23,24 @@ search_space = {'sss': SSSBench201, 'tss': TSSBench201}
 path = 'bench_pf/[cifar10-tss][FLOPS-TEST_ERR]-200EP.npy'
 pf = np.load(path)
 
+bench_info = torch.load('experiments/[cifar10-tss-200].pth.tar')['obj']
+
 DATASET, SS, F1, F2, HP = re.findall(r'.+\/\[(\w+)-(\w+)\]\[(\w+)-(\w+)]-(\d+).+', path)[0]
 
 problem = search_space[SS](dataset=DATASET)
 
-def get_result(checkpoint_path, key, hp):
+def get_result(checkpoint_path, key, hp, custom_eval=False):
     n_evals, F, cv = [], [], []
     checkpoints = sorted(os.listdir(checkpoint_path), key=key)
     pf = None
-    for checkpoint in checkpoints:
-        obj = torch.load(os.path.join(checkpoint_path, checkpoint))['obj']
+    c_eval = []
+    for i, checkpoint in enumerate(checkpoints):
+        checkpoint = torch.load(os.path.join(checkpoint_path, checkpoint))
+        obj = checkpoint['obj']
         n_evals += [obj.evaluator.n_eval]
+        if custom_eval and i != 0:
+            val = checkpoint['score_dict']['n_eval'][i]
+            c_eval += [val + c_eval[-1] if len(c_eval) != 0 else val]
         opt = obj.opt
         feas = np.where(opt.get("feasible"))[0]
         cv += [opt.get('CV').min()]
@@ -47,16 +54,19 @@ def get_result(checkpoint_path, key, hp):
             p_x = problem._decode(x)
             idx_x = problem.api.query_index_by_arch(p_x)
             # flops = problem.api.get_cost_info(idx_x, DATASET, hp=hp)['flops']
-            test_err = \
-                100 - problem.api.get_more_info(idx_x, 
-                                                DATASET, 
-                                                hp=hp, 
-                                                is_random=False)['test-accuracy']
-            __F += [test_err]
+            flops = bench_info[idx_x][0]['flops']
+            test_err = 100 - bench_info[idx_x][1]['test-accuracy']
+            # test_err = \
+            #     100 - problem.api.get_more_info(idx_x, 
+            #                                     DATASET, 
+            #                                     hp=hp, 
+            #                                     is_random=False)['test-accuracy']
+            __F += [[flops, test_err]]
         __F = np.array(__F)
-        _F = np.column_stack((_F[:, 0], __F))
-        # _F = non_dominated_rank(_F)
-        F += [_F]
+        # _F = np.column_stack((_F[:, 0], __F))
+        
+        # __F, _ = non_dominated_rank(__F)
+        F += [__F]
 
 
         # temp = F_all.sum(axis=1)
@@ -77,8 +87,12 @@ def get_result(checkpoint_path, key, hp):
     #     F[i] = F[i][dominated_mask == False]
     #     if len(F[i]) == 0:
     #         n_evals.pop(i)
+    if custom_eval:
+        # c_eval[0] = 99
+        c_eval = [49] + c_eval
+        print(c_eval)
 
-    return n_evals, F, cv, pf
+    return n_evals if not custom_eval else c_eval, F, cv, pf
 
 # F_1 = get_result('experiments/[NSGA2-TSS-CIFAR10][FLOPS_TEST]-UX-G200-S0 (ELIMINATE-DUP) (NO RE-EVAL)/checkpoints',
 #                  lambda x: int(re.search(r'-(\d+)', x).group(1)),
@@ -133,9 +147,7 @@ metric = IGD(pf=pf, normalize=True)
 # # plt.savefig('assets/{}_Val-Err_{}-own_front-{}-s777-log_x.pdf'.format(SS.upper(), F1, 25))
 # plt.show()
 
-# F_3 = get_result('experiments/rank_no_re-eval',
-#                     lambda x: int(re.search(r'-(\d+)', x).group(1)),
-#                     hp=HP)
+
 F_4 = get_result('experiments/[NSGA2-TSS-CIFAR10][FLOPS_VALID]-UX-G200-S777-25EP/checkpoints',
                     lambda x: int(re.search(r'-(\d+)', x).group(1)),
                     hp=HP)
@@ -146,33 +158,39 @@ F_4 = get_result('experiments/[NSGA2-TSS-CIFAR10][FLOPS_VALID]-UX-G200-S777-25EP
 #                     lambda x: int(re.search(r'-(\d+)', x).group(1)),
 #                     hp=HP)
 
-# igd_1 = [metric.calc(f) for f in F_1[1] if len(f) != 0]
+F_3 = get_result('experiments/good_run/ntk_lr_mean',
+                    lambda x: int(re.search(r'-(\d+)', x).group(1)),
+                    hp=HP,
+                    custom_eval=False)
 
-# igd_3 = [metric.calc(f) for f in F_3[1] if len(f) != 0]
+
+igd_3 = [metric.calc(f) for f in F_3[1] if len(f) != 0]
 igd_4 = [metric.calc(f) for f in F_4[1] if len(f) != 0]
+
 # igd_5 = [metric.calc(f) for f in F_5[1] if len(f) != 0]
 stop = False
 while not stop:
-    F_2 = get_result('experiments/3-obj-fixed',
-                lambda x: int(re.search(r'-(\d+)', x).group(1)),
-                hp=HP)
+    # F_2 = get_result('experiments/3-obj-fixed',
+    #             lambda x: int(re.search(r'-(\d+)', x).group(1)),
+    #             hp=HP)
     # F_6 = get_result('experiments/norm_zero_no_dup',
     #                 lambda x: int(re.search(r'-(\d+)', x).group(1)),
     #                 hp=HP)
     
-    F_1 = get_result('experiments/3-obj-10-rep',
+    F_1 = get_result('experiments/ntk_lr_prune_worst',
                     lambda x: int(re.search(r'-(\d+)', x).group(1)),
-                    hp=HP)
-    igd_2 = [metric.calc(f) for f in F_2[1] if len(f) != 0]
+                    hp=HP,
+                    custom_eval=False)
     igd_1 = [metric.calc(f) for f in F_1[1] if len(f) != 0]
+    # igd_2 = [metric.calc(f) for f in F_2[1] if len(f) != 0]
     # igd_6 = [metric.calc(f) for f in F_6[1] if len(f) != 0]
 
 
-    plt.plot(F_1[0], igd_1, '-', markersize=4, linewidth=1, color="green", label='F - NTK - LR (Allow Dup)')
+    plt.plot(F_1[0], igd_1, '-', markersize=4, linewidth=1, color="green", label='F - NTK - LR')
     plt.plot(F_4[0], igd_4, '-', markersize=4, linewidth=1, color="blue", label='F - Val_Err')
-    plt.plot(F_2[0], igd_2, '-', markersize=4, linewidth=1, color="red", label='F - NTK - LR')
+    # plt.plot(F_2[0], igd_2, '-', markersize=4, linewidth=1, color="red", label='F - NTK - LR')
 
-    # plt.plot(F_3[0], igd_3, '-', markersize=4, linewidth=1, color="black", label='F - NTK+LR Rank (Allow Dup)')
+    # plt.plot(F_3[0], igd_3, '-', markersize=4, linewidth=1, color="black", label='F - NTK - LR Mean')
     # plt.plot(F_5[0], igd_5, '-', markersize=4, linewidth=1, color="magenta", label='F - NTK+LR Normed (Allow Dup)')
     # plt.plot(F_6[0], igd_6, '-', markersize=4, linewidth=1, color="purple", label='F - NTK+LR Normed (Dup Remove)')
     # plt.plot(F_7[0], igd_7, '-', markersize=4, linewidth=1, color="gray", label='F - NTK+LR Rank (Dup Remove)')

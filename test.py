@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from pymoo.model.decision_making import normalize
 plt.rcParams["font.family"] = "serif"
 
 import torch
@@ -8,28 +9,7 @@ import numpy as np
 
 
 from pymoo_custom_modules.problems.multi_obj.bench201 import SSSBench201, TSSBench201
-
-
-
-def is_dominated(x, y):
-    not_dominated = x <= y
-    dominate = x < y
-
-    return np.logical_and(
-        not_dominated.all(axis=1),
-        dominate.any(axis=1)
-    )
-
-def domination_count(F_pop):
-        count = np.empty((F_pop.shape[0],))
-        for i in range(F_pop.shape[0]):
-            count[i] = is_dominated(F_pop, F_pop[i]).sum()
-        return count
-
-def non_dominated_rank(f_pop):
-        count = domination_count(f_pop)
-
-        return f_pop[count == 0]
+from pymoo.factory import get_decision_making
 
 
 # init = torch.load('experiments/exp-20210323-1754/checkpoints/[NSGAII] Gen_1.pth.tar')
@@ -105,9 +85,13 @@ tss_bench = TSSBench201(dataset)
 sss_bench = SSSBench201(dataset)
 
 # A = torch.load('experiments/[NSGAII] Gen_200.pth_11.tar')
-A = torch.load('experiments/[NSGA2-TSS-CIFAR10][FLOPS_VALID]-UX-G200-S888-25EP/checkpoints/[NSGA2_TSSBench201] G-12.pth.tar')
-B = torch.load('experiments/3-obj-fixed-dup-allow/[NSGA2_TSSBench201GradientFree] G-200.pth.tar')
-F = np.load('bench_pf/[cifar10-tss][FLOPS-TEST_ERR]-200EP.npy')
+A = torch.load('experiments/[NSGA2-TSS-CIFAR10][FLOPS_VALID]-UX-G200-S888-25EP/checkpoints/[NSGA2_TSSBench201] G-200.pth.tar')
+B = torch.load('experiments/ntk_lr_prune_worst/[NSGA2_TSSBench201GradientFree] G-198.pth.tar')
+pf = np.load('bench_pf/[cifar10-tss][FLOPS-TEST_ERR]-200EP.npy')
+from pymoo.decision_making.high_tradeoff_inverted import HighTradeoffPointsInverted
+# dm = get_decision_making('high-tradeoff', normalize=False)
+dm = HighTradeoffPointsInverted()
+I = dm.do(pf)
 # F = []
 # for cost_info, more_info in front['obj']:
 #     flops = cost_info['flops']
@@ -134,21 +118,21 @@ t_err_A, v_err_A, flops_A, indices_A, v_err_A_max = get_err(A['obj'].pop.get('X'
 t_err_B, v_err_B, flops_B, indices_B, v_err_B_max = get_err(B['obj'].pop.get('X'), tss_bench, '200')
 
 
-plot_front(flops_B, v_err_B, 
-           marker='x', 
-           linestyle='--', 
-           color='green',
-           label='(G:{}) Test Err 25 epochs [FLOPS-NTK-LR]'.format(B['obj'].n_gen))
-plot_front(flops_A, v_err_A, 
-           marker='o', 
-           linestyle='--', 
-           color='blue',
-           label='(G:{}) Test Err 25 epochs [FLOPS-VALID_ERR]'.format(A['obj'].n_gen))
+# plot_front(flops_B, v_err_B, 
+#            marker='x', 
+#            linestyle='--', 
+#            color='green',
+#            label='(G:{}) Test Err 25 epochs [FLOPS-NTK-LR]'.format(B['obj'].n_gen))
+# plot_front(flops_A, v_err_A, 
+#            marker='o', 
+#            linestyle='--', 
+#            color='blue',
+#            label='(G:{}) Test Err 25 epochs [FLOPS-VALID_ERR]'.format(A['obj'].n_gen))
 
 plot_front(flops_B, t_err_B, 
            marker='v', 
            linestyle='--', 
-           color='cyan',
+           color='blue',
            label='(G:{}) Test Err 200 epochs [FLOPS-NTK-LR]'.format(B['obj'].n_gen))
 plot_front(flops_A, t_err_A, 
            marker='^', 
@@ -168,11 +152,16 @@ plot_front(flops_A, t_err_A,
 #            color='olive',
 #            label='(G:{}) Val Err 200 epochs [FLOPS-NTK-LR]'.format(B['obj'].n_gen))
 
-plot_front(F[:, 0], F[:, 1], 
+plot_front(pf[:, 0], pf[:, 1], 
            marker='*', 
            linestyle='-', 
            color='black',
            label='Pareto Front')
+ax.scatter(pf[I][:, 0], pf[I][:, 1],
+          marker='o',
+          color='purple',
+          s=50,
+          label='high trade-off')
 
 ax.set_xlabel('FLOPS')
 ax.set_ylabel('Error Rate (%)')

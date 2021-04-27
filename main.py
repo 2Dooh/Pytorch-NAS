@@ -1,6 +1,6 @@
 from utils.config import process_config
 
-import agents
+import agents as agents
 
 import click
 
@@ -15,5 +15,5 @@ def cli(config, console_log):
     agent.solve()
 
 if __name__ == '__main__':
-    cli(['--config', './configs/TSSBench201.json'])
+    cli(['--config', './configs/bench101.json'])
     # cli()

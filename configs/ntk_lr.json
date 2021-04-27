@@ -1,6 +1,6 @@
 {
-    "exp_name": "MNIST",
-    "agent": "Classifier",
+    "exp_name": "NTK_LR-SurrogateModel",
+    "agent": "Regressor",
 
     "exp_cfg": {
         "cuda": true,
@@ -13,12 +13,13 @@
     },
     
     "data_loader": {
-        "name": "Mnist",
+        "name": "NTK_LR_Regression",
         "kwargs": {
-            "data_folder": "~/.torch",
-            "pin_memory": true,
-            "num_workers": 4,
-            "batch_size": 16
+            "path": "logs/ntk_lr_test-err.csv", 
+            "batch_size": 1024, 
+            "test_batch_size": 3125, 
+            "data_loader_workers": 2, 
+            "pin_memory": true
         }
         
     },
@@ -27,19 +28,19 @@
         "name": "ConditionMet",
         "kwargs": {
             "counter": "current_epoch",
-            "flag": 50
+            "flag": 300
         }
     },
 
     "criterion": {
-        "name": "CrossEntropyLoss",
+        "name": "MSELoss",
         "kwargs": {}
     },
 
     "optimizer": {
         "name": "SGD",
         "kwargs": {
-            "lr": 0.025,
+            "lr": 0.0025,
             "momentum": 0.9,
             "weight_decay": 3e-4
         }
@@ -47,24 +48,21 @@
 
     "scheduler": {
         "name": "CosineAnnealingLR",
-        "kwargs": {"T_max": 50, "eta_min": 0}
+        "kwargs": {"T_max": 300, "eta_min": 0}
     },
 
     "model": {
         "name": "MultiLayerPerceptron",
         "kwargs": {
-            "layers_dim": [784, 20, 20, 10],
-            "activations": ["ReLU", "ReLU"]
+            "layers_dim": [2, 3, 3, 5, 1],
+            "activations": ["Tanh", "Tanh", "Tanh", ""]
         }
     },
 
     "callbacks": {
         "LearningRateScheduler": {},
-        "GradientClipper": {"clip_val": 5},
         "ModelComplexity": {},
-        "ModelSaver": {"metrics": {"ErrorRate": {}}},
         "ModelEvaluator": {"metrics": {
-            "ErrorRate": {},
             "Loss": {}
         }}
     }

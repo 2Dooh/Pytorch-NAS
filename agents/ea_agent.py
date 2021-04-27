@@ -20,6 +20,8 @@ import callbacks.evo_alg as callbacks
 
 import os
 
+from utils.prepare_seed import prepare_seed
+
 class EvoAgent(base.AgentBase):
     def __init__(self, config, **kwargs) -> None:
         super().__init__(config, **kwargs)
@@ -81,12 +83,13 @@ class EvoAgent(base.AgentBase):
                     global_step=self.obj.n_gen
                 )
             
-        self.summary_writer.close()
+            self.summary_writer.close()
 
     def _initialize(self, **kwargs):
         super()._initialize(**kwargs)
 
         self.obj = copy.deepcopy(self.algorithm)
+        prepare_seed(self.config.exp_cfg.seed)
         self.obj.setup(self.problem, 
                        termination=self.termination, 
                        seed=self.config.exp_cfg.seed,
@@ -113,8 +116,9 @@ class EvoAgent(base.AgentBase):
             self._finalize(**kwargs)
 
     def _finalize(self, **kwargs):
-        result = self.obj.result()   
+        result = self.obj.result()
         result.problem = None
+        
         super()._save_checkpoint(api=torch, 
                                  obj=result, 
                                  f=os.path.join(self.config.out_dir, 'result.pth.tar'))
@@ -129,13 +133,15 @@ class EvoAgent(base.AgentBase):
 
         self.obj = checkpoint['obj']
         self.obj.problem = self.problem
+        self.obj.problem.score_dict = checkpoint['score_dict']
+
         return checkpoint
 
-    def _save_checkpoint(self, checkpoint={}, **kwargs):    
-        problem = self.obj.problem  
-        self.obj.problem = None  
-        checkpoint['obj'] = self.obj
-        checkpoint['evaluated_arch'] = problem.score_dict
+    def _save_checkpoint(self, checkpoint={}, **kwargs):        
+        problem = self.obj.problem
+        self.obj.problem = None
+        checkpoint['score_dict'] = problem.score_dict
+        checkpoint['obj'] = copy.deepcopy(self.obj) 
         if self.obj.n_gen == 1:
             checkpoint['algorithm'] = self.algorithm
         filepath = '[{}_{}] G-{}.pth.tar'.format(
@@ -146,6 +152,8 @@ class EvoAgent(base.AgentBase):
         super()._save_checkpoint(api=torch, 
                                  obj=checkpoint, 
                                  f=os.path.join(self.config.checkpoint_dir, filepath))
+
+        self.obj = checkpoint['obj']
         self.obj.problem = problem
 
     

@@ -2,7 +2,7 @@ from typing import Dict, final
 
 import agents.base as base
 
-import computational_graphs.models as graph_models
+import computational_graphs.custom_models as graph_models
 
 import data_loaders
 
@@ -161,7 +161,7 @@ class NNAgent(base.AgentBase):
 
     def _write_summary(self, mode, **kwargs):
         if self.summary_writer:
-            for key, val in enumerate(self.eval_dict[mode.name].items()):
+            for idx, (key, val) in enumerate(self.eval_dict[mode.name].items()):
                 self.summary_writer.add_scalar(
                     '{}/{}'.format(key, mode.name),
                     val,

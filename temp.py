@@ -177,7 +177,7 @@ class GradientFreeMetric:
         self.n_repeats = n_repeats
 
         self.lrc_model = Linear_Region_Collector(
-                          input_size=(1000, 3, 3, 3), 
+                          input_size=(1000, 1, 3, 3), 
                           sample_batch=3, 
                           dataset=dataset,
                           data_path=os.getcwd(),
@@ -188,7 +188,8 @@ class GradientFreeMetric:
             num_workers=num_workers,
             batch_size=input_size[0],
             pin_memory=True,
-            drop_last=True
+            drop_last=True,
+            worker_init_fn=random.seed(seed)
         ).train_loader
 
         self.ntk_strategy = np.mean if strategy == 'avg' else max
@@ -220,6 +221,7 @@ class GradientFreeMetric:
         # return -self.lr_strategy(LR)
         return LR
 
+import random
 class TSSBench201GradientFree(TSSBench201):
     def __init__(self, 
                 n_repeats=3,
@@ -228,6 +230,7 @@ class TSSBench201GradientFree(TSSBench201):
                 input_size=(32, 3, 32, 32),
                 cuda=True,
                 seed=0, 
+                num_workers=4,
                 **kwargs):
 
         super().__init__(n_obj=3,
@@ -237,7 +240,17 @@ class TSSBench201GradientFree(TSSBench201):
                          elementwise_evaluation=True,
                          **kwargs) 
         self.device = torch.device('cuda:0' if cuda else 'cpu')
-        self.ntk_lr_metrics = GradientFreeMetric(input_size, dataset, n_repeats, 'best', seed)
+        self.ntk_lr_metrics = GradientFreeMetric(input_size, dataset, n_repeats, 'best', seed, num_workers)
+
+        random.seed(seed)
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+        torch.cuda.manual_seed_all(seed)
+        torch.backends.cudnn.enabled = True
 
     def _evaluate(self, x, out, *args, **kwargs):
         genotype = x
@@ -252,54 +265,25 @@ class TSSBench201GradientFree(TSSBench201):
         #   return
         
         config = self.api.get_net_config(index, self.dataset)
+        config['C'] = 3
+        config['N'] = 1
+        config['depth'] = -1
+        config_thin = config.copy()
+        config_thin['C'] = config_thin['C_in'] = config_thin['depth'] = config_thin['N'] = 1
         network = get_cell_based_tiny_net(edict(config)).to(self.device)
+        network_thin = get_cell_based_tiny_net(edict(config_thin)).to(self.device)
 
-        cost_info = self.api.get_cost_info(index, self.dataset, hp=self.hp)
+        cost_info = self.api.get_cost_info(index, self.dataset)
 
-        F = [cost_info['flops'], self.ntk_lr_metrics.calc_ntk(network), self.ntk_lr_metrics.calc_lrc(network)]
+        _flops = cost_info['flops']
+        ntk = np.array(self.ntk_lr_metrics.calc_ntk(network)).std()
+        lr = -np.array(self.ntk_lr_metrics.calc_lrc(network_thin)).min()
+
+        F = [cost_info['flops'], ntk, lr]
 
         self.logger.info(self.arch_info.format(index, *F))
         out['F'] = np.column_stack(F)
-        # self.score_dict[index] = {'F': out['F'], 'n': 1}
-
-        
-        # flops, ntks, lrs = [], [], []
-        # for x in X:
-        #     genotype = x
-        #     phenotype = self._decode(genotype)
-        #     index = self.api.query_index_by_arch(phenotype)
-
-        #     if index in self.score_dict:
-        #         _flops, ntk, lr = self.score_dict[index]['F']
-        #         flops += [_flops]
-        #         ntks += [ntk]
-        #         lrs += [lr]
-        #         self.score_dict[index]['n'] += 1
-        #         self.logger.info('Re-evaluate arch : {} - {} times'.format(index, 
-        #                                                                    self.score_dict[index]['n']))
-        #         continue
-
-        #     config = self.api.get_net_config(index, self.dataset)
-        #     network = get_cell_based_tiny_net(edict(config)).to(self.device)
-
-        #     _flops = self.api.get_cost_info(index, self.dataset, hp=self.hp)['flops']
-        #     ntk, lr = self.ntk_lr_metrics.calc_ntk(network), self.ntk_lr_metrics.calc_lrc(network)
-
-        #     flops.append(_flops)
-        #     ntks.append(ntk)
-        #     lrs.append(lr)
-
-        #     self.score_dict[index] = {'F': [_flops, ntk, lr], 'n': 1}
-
-        #     self.logger.info(self.arch_info.format(index, *self.score_dict[index]['F']))
-
-        # # self.logger.info(flops)
-        # flops = np.array(flops)
-        # rank_ntks = np.argsort(ntks)
-        # rank_lrs = np.argsort(lrs)[::-1]
-        # relative_rank = (rank_ntks + rank_lrs).astype(flops.dtype)
-
-        # out['F'] = np.column_stack([flops, relative_rank])
+        self.score_dict[index] = {'F': out['F'], 'n': 1}
 
 class TSSGFRank(TSSBench201):
     def __init__(self, 
@@ -319,8 +303,9 @@ class TSSGFRank(TSSBench201):
                          **kwargs) 
         self.ntk_lr_metrics = GradientFreeMetric(input_size, dataset, n_repeats, cuda, seed, num_workers)
         self.device = torch.device('cuda:0' if cuda else 'cpu')
-        self.global_ntks = np.ones(5**6) * np.inf
-        self.global_lrs = np.ones(5**6) * np.inf
+        self.global_ntks = []
+        self.global_lrs = []
+        self.global_indices = []
 
     def _evaluate(self, X, out, *args, **kwargs):
         flops, ntks, lrs = [], [], []
@@ -331,28 +316,32 @@ class TSSGFRank(TSSBench201):
             index = self.api.query_index_by_arch(phenotype)
             indices += [index]
             config = self.api.get_net_config(index, self.dataset)
+            config['C'] = 3
+            config['N'] = 1
+            config['depth'] = -1
+            config_thin = config.copy()
+            config_thin['C'] = config_thin['C_in'] = config_thin['depth'] = config_thin['N'] = 1
             network = get_cell_based_tiny_net(edict(config)).to(self.device)
+            network_thin = get_cell_based_tiny_net(edict(config_thin)).to(self.device)
 
             cost_info = self.api.get_cost_info(index, self.dataset)
 
             _flops = cost_info['flops']
-            
+            ntk = self.ntk_lr_metrics.calc_ntk(network)
+            lr = self.ntk_lr_metrics.calc_lrc(network_thin)
 
-            flops += [_flops]
             if index in self.score_dict:
-                ntks += [max(self.score_dict[index]['ntks'])]
-                lrs += [min(self.score_dict[index]['lrs'])]
-                self.score_dict[index]['n'] += 1
+                self.score_dict[index]['ntks'] += ntk
+                self.score_dict[index]['lrs'] += lr
             else:
-                ntk = self.ntk_lr_metrics.calc_ntk(network)
-                lr = self.ntk_lr_metrics.calc_lrc(network)
                 self.score_dict[index] = {
                     'ntks': ntk,
-                    'lrs': lr,
-                    'n': 1
+                    'lrs': lr
                 }
-                ntks += [max(self.score_dict[index]['ntks'])]
-                lrs += [min(self.score_dict[index]['lrs'])]
+            
+            flops += [_flops]
+            ntks += [np.array(self.score_dict[index]['ntks']).max()]
+            lrs += [np.array(self.score_dict[index]['lrs']).min()]
 
             self.logger.info(self.arch_info.format(index, _flops, *list(self.score_dict[index].values())))
 
@@ -360,21 +349,55 @@ class TSSGFRank(TSSBench201):
         lrs = np.array(lrs)
         indices = np.array(indices)
 
-        self.logger.info('lr max: {} min {} mean {} std {}'.format(lrs.max(), lrs.min(), lrs.mean(), lrs.std()))
-        self.logger.info('ntk max: {} min {} mean {} std {}'.format(ntks.max(), ntks.min(), ntks.mean(), ntks.std()))
+        # #### Global Rank #####
+        # self.global_ntks = np.concatenate([self.global_ntks, ntks])
+        # self.global_lrs = np.concatenate([self.global_lrs, lrs])
+        # self.global_indices = np.concatenate([self.global_indices, indices])
+        # _, unique_indices = np.unique(self.global_indices, return_index=True)
+        # self.global_ntks = self.global_ntks[unique_indices]
+        # self.global_lrs = self.global_lrs[unique_indices]
+        # self.global_indices = self.global_indices[unique_indices]
+        
 
-        self.global_ntks[indices] = ntks
-        self.global_lrs[indices] = lrs
+        # global_ntk_ranks = self.global_ntks.argsort().argsort()
+        # global_lr_ranks = self.global_lrs.argsort()[::-1].argsort()
 
-        global_ntk_ranks = np.argsort(self.global_ntks)
-        global_lr_ranks = np.argsort(self.global_lrs)[::-1]
+        # sorted_indices = self.global_indices.argsort()
+        # indices = sorted_indices[np.searchsorted(self.global_indices, indices, sorter=sorted_indices)]
+        # ntk_ranks = global_ntk_ranks[indices]
+        # lr_ranks = global_lr_ranks[indices]
+        # ranks = ntk_ranks + lr_ranks
+        # ##### Global Rank #####
 
-        ntk_ranks = global_ntk_ranks[indices]
-        lr_ranks = global_lr_ranks[indices]
+        ##### Local Rank #####
+        # _, unique = np.unique(indices, return_index=True)
+        # unique_ntks = ntks[unique]
+        # unique_lrs = lrs[unique]
+        # unique_indices = indices[unique]
+        # ntk_ranks = unique_ntks.argsort().argsort()
+        # lr_ranks = unique_lrs.argsort()[::-1].argsort()
+        # sorted_unique_indices = unique_indices.argsort()
+        # indices = sorted_unique_indices[np.searchsorted(unique_indices, indices, sorter=sorted_unique_indices)]
+        # ntk_ranks = ntk_ranks[indices]
+        # lr_ranks = lr_ranks[indices]
+        # ranks = ntk_ranks + lr_ranks
+        ##### Local Rank #####
+
+        # self.global_ntks[indices] = ntks
+        # self.global_lrs[indices] = lrs
+
+        # global_ntk_ranks = self.global_ntks.argsort().argsort()
+        # global_lr_ranks = self.global_lrs.argsort()[::-1].argsort()
+
+        # ntk_ranks = global_ntk_ranks[indices]
+        # lr_ranks = global_lr_ranks[indices]
+        ntk_ranks = ntks.argsort().argsort()
+        lr_ranks = lrs.argsort()[::-1].argsort()
+        self.logger.info('ntk ranks: {}'.format(ntk_ranks))
+        self.logger.info('lr ranks: {}'.format(lr_ranks))
         ranks = ntk_ranks + lr_ranks
 
         out['F'] = np.column_stack([flops, ranks])
-        self.logger.info(out['F'])
 
 from pymoo.util.normalization import normalize
 class TSSGFNorm(TSSBench201):
@@ -395,8 +418,10 @@ class TSSGFNorm(TSSBench201):
                          **kwargs) 
         self.ntk_lr_metrics = GradientFreeMetric(input_size, dataset, n_repeats, cuda, seed, num_workers)
         self.device = torch.device('cuda:0' if cuda else 'cpu')
-        self.global_ntks = np.zeros(5**6)
-        self.global_lrs = np.zeros(5**6)
+        # self.global_ntks = np.zeros(5**6)
+        # self.global_lrs = np.zeros(5**6)
+        self.max_lr = self.max_ntk = -np.inf
+        self.min_lr = self.min_ntk = np.inf
 
     def _evaluate(self, X, out, *args, **kwargs):
         flops, ntks, lrs = [], [], []
@@ -407,13 +432,19 @@ class TSSGFNorm(TSSBench201):
             index = self.api.query_index_by_arch(phenotype)
             indices += [index]
             config = self.api.get_net_config(index, self.dataset)
+            config['C'] = 3
+            config['N'] = 1
+            config['depth'] = -1
+            config_thin = config.copy()
+            config_thin['C'] = config_thin['C_in'] = config_thin['depth'] = config_thin['N'] = 1
             network = get_cell_based_tiny_net(edict(config)).to(self.device)
+            network_thin = get_cell_based_tiny_net(edict(config_thin)).to(self.device)
 
             cost_info = self.api.get_cost_info(index, self.dataset)
 
             _flops = cost_info['flops']
             ntk = self.ntk_lr_metrics.calc_ntk(network)
-            lr = self.ntk_lr_metrics.calc_lrc(network)
+            lr = self.ntk_lr_metrics.calc_lrc(network_thin)
 
             if index in self.score_dict:
                 self.score_dict[index]['ntks'] += ntk
@@ -425,22 +456,29 @@ class TSSGFNorm(TSSBench201):
                 }
             
             flops += [_flops]
-            ntks += [max(self.score_dict[index]['ntks'])]
-            lrs += [min(self.score_dict[index]['lrs'])]
+            ntks += [np.array(self.score_dict[index]['ntks']).max()]
+            lrs += [np.array(self.score_dict[index]['lrs']).min()]
+
 
             self.logger.info(self.arch_info.format(index, _flops, *list(self.score_dict[index].values())))
+            
         ntks = np.array(ntks)
         lrs = np.array(lrs)
         indices = np.array(indices)
 
-        self.global_ntks[indices] = ntks
-        self.global_lrs[indices] = lrs
+        self.max_ntk = max(self.max_ntk, max(ntks))
+        self.max_lr = max(self.max_lr, max(lrs))
+        self.min_lr = min(self.min_lr, min(lrs))
+        self.min_ntk = min(self.min_ntk, min(ntks))
 
-        self.logger.info('lr max: {} min {}'.format(self.global_lrs.max(), self.global_lrs.min()))
-        self.logger.info('ntk max: {} min {}'.format(self.global_ntks.max(), self.global_ntks.min()))
+        # self.global_ntks[indices] = ntks
+        # self.global_lrs[indices] = lrs
 
-        norm_ntks = normalize(ntks, 0, self.global_ntks.max())
-        norm_lrs = normalize(lrs, 0, self.global_lrs.max())
+        self.logger.info('lr max: {} min {}'.format(self.max_lr, self.min_lr))
+        self.logger.info('ntk max: {} min {}'.format(self.max_ntk, self.min_ntk))
+
+        norm_ntks = normalize(ntks, self.min_ntk, self.max_ntk)
+        norm_lrs = normalize(lrs, self.min_lr, self.max_lr)
 
         out['F'] = np.column_stack([flops, norm_ntks-norm_lrs])
 

@@ -35,7 +35,13 @@ def get_cell_based_tiny_net(config):
         elif hasattr(config, 'arch_str'):
             genotype = CellStructure.str2structure(config.arch_str)
         else: raise ValueError('Can not find genotype from this config : {:}'.format(config))
-        return TinyNetwork(config.C, config.N, genotype, config.num_classes)
+        return TinyNetwork(config.C, 
+                           config.N, 
+                           genotype, 
+                           config.num_classes, 
+                           depth=config.depth if 'depth' in config else -1, 
+                           C_in=config.C_in if 'C_in' in config else 3,
+                           use_stem=config.use_stem)
     elif config.name == 'infer.shape.tiny':
         from .shape_infers import DynamicShapeTinyNet
         if isinstance(config.channels, str):

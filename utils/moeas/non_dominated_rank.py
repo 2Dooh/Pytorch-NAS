@@ -16,5 +16,6 @@ def domination_count(F_pop):
         return count
 
 def non_dominated_rank(f_pop):
+        indices = np.arange(len(f_pop))
         count = domination_count(f_pop)
-        return f_pop[count == 0]
+        return f_pop[count == 0], indices[count == 0]
