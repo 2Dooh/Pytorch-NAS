@@ -161,7 +161,14 @@ class LinearRegionCount(object):
 
 
 class Linear_Region_Collector:
-    def __init__(self, models=[], input_size=(64, 3, 32, 32), sample_batch=100, dataset='cifar100', data_path=None, seed=0):
+    def __init__(self, 
+                 models=[], 
+                 input_size=(64, 3, 32, 32), 
+                 sample_batch=100, 
+                 dataset='cifar100', 
+                 data_path=None, 
+                 seed=0, 
+                 num_workers=2):
         self.models = []
         self.input_size = input_size  # BCHW
         self.sample_batch = sample_batch
@@ -170,9 +177,9 @@ class Linear_Region_Collector:
         self.dataset = dataset
         self.data_path = data_path
         self.seed = seed
-        self.reinit(models, input_size, sample_batch, seed)
+        self.reinit(models, input_size, sample_batch, seed, num_workers)
 
-    def reinit(self, models=None, input_size=None, sample_batch=None, seed=None):
+    def reinit(self, models=None, input_size=None, sample_batch=None, seed=None, num_workers=2):
         if models is not None:
             assert isinstance(models, list)
             del self.models
@@ -191,7 +198,7 @@ class Linear_Region_Collector:
                 self.sample_batch = sample_batch
             if self.data_path is not None:
                 self.train_data, _, class_num = get_datasets(self.dataset, self.data_path, self.input_size, -1)
-                self.train_loader = torch.utils.data.DataLoader(self.train_data, batch_size=self.input_size[0], num_workers=4, pin_memory=True, drop_last=True, shuffle=True)
+                self.train_loader = torch.utils.data.DataLoader(self.train_data, batch_size=self.input_size[0], num_workers=num_workers, pin_memory=True, drop_last=True, shuffle=True)
                 self.loader = iter(self.train_loader)
         if seed is not None and seed != self.seed:
             self.seed = seed

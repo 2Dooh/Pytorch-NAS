@@ -15,5 +15,5 @@ def cli(config, console_log):
     agent.solve()
 
 if __name__ == '__main__':
-    cli(['--config', './configs/bench101.json'])
+    cli(['--config', './configs/TSSBench201.json'])
     # cli()

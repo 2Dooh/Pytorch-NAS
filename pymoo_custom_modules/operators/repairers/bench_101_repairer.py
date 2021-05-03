@@ -2,8 +2,8 @@ import numpy as np
 
 from pymoo.model.repair import Repair
 
-from computational_graphs.bench101.nasbench.nasbench import api
-from computational_graphs.bench101.nasbench.nasbench.lib.graph_util import num_edges, is_full_dag, gen_is_edge_fn
+from lib.bench101.nasbench.nasbench import api
+from lib.bench101.nasbench.nasbench.lib.graph_util import num_edges, is_full_dag, gen_is_edge_fn
 
 INPUT = 'input'
 OUTPUT = 'output'

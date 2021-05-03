@@ -1,10 +1,10 @@
 {
     "agent": "EvoAgent",
-    "exp_name": "[TSS-CIFAR10][FLOPS_VALID]-UX-G200-S777-200EP-NO_ISO",
+    "exp_name": "[DARTSGF-CIFAR10][FLOPS_NTK_LR]-UX-G200",
     "exp_cfg": {
         "seed": 0,
         "custom_problem": true, 
-        "summary_writer": false
+        "summary_writer": true
     },
 
     "algorithm": {
@@ -15,8 +15,10 @@
         }
     },
 
+    "repair": "Bench301Repairer",
+
     "eliminate_duplicates": {
-        "name": "Bench201DuplicateEliminator",
+        "name": "DartsDuplicateEliminator",
         "kwargs": {}
     },
     
@@ -41,20 +43,21 @@
             "prob": 0.02
         }
     },
-    
 
     "problem": {
-        "name": "TSSBench201",
+        "name": "DartsGradientFree",
         "kwargs": {
-            "dataset": "cifar10-valid",
-            "iepoch": 199,
-            "elementwise_evaluation": true,
-            "hp": 200
+            "elementwise_evaluation": true
         }
     },
 
     "callbacks": {
         "PopLogger": {},
-        "PopSaver": {}
+        "PopSaver": {},
+        "ParetoFrontProgress": {
+          "plot_freq": 1,
+          "labels": ["Flops", "NTK (Log)", "LR"],
+          "loc": "upper right"
+        }
     }
 }

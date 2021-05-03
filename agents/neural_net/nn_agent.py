@@ -2,7 +2,7 @@ from typing import Dict, final
 
 import agents.base as base
 
-import computational_graphs.custom_models as graph_models
+import lib.custom_models as graph_models
 
 import data_loaders
 

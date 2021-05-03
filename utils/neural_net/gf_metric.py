@@ -12,16 +12,17 @@ import random
 
 import os
 
-class GradientFreeMetric:
+class GradientFreeEvaluator:
     def __init__(self, 
-                 input_size, 
-                 dataset,  
+                 dataset='cifar10', 
+                 lr_batch_size=1000, 
+                 ntk_batch_size=16,
                  seed=1,
                  num_workers=2) -> None:
         self.dataset = dataset
 
         self.lrc_model = Linear_Region_Collector(
-                          input_size=(1000, 1, 3, 3), 
+                          input_size=(lr_batch_size, 1, 3, 3), 
                           sample_batch=3, 
                           dataset=dataset,
                           data_path=os.getcwd(),
@@ -30,7 +31,7 @@ class GradientFreeMetric:
         self.loader = getattr(data_loaders, dataset.upper())(
             data_folder=os.getcwd(),
             num_workers=num_workers,
-            batch_size=16,
+            batch_size=ntk_batch_size,
             pin_memory=True,
             drop_last=True,
             worker_init_fn=random.seed(seed)

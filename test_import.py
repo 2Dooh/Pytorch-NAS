@@ -1,1 +1,1 @@
-from computational_graphs.models.bench101.nasbench import api
+from lib.models.bench101.nasbench import api

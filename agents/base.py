@@ -2,7 +2,7 @@ from abc import abstractmethod, ABC
 
 import logging
 
-from torch.utils.tensorboard import SummaryWriter
+from tensorboardX import SummaryWriter
 
 
 

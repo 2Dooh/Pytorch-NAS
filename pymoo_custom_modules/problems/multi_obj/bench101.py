@@ -3,11 +3,11 @@ from pymoo.model.problem import Problem
 import numpy as np
 
 from utils.neural_net.flops_benchmark import get_model_infos
-from utils.neural_net.gf_metric import GradientFreeMetric
+from utils.neural_net.gf_metric import GradientFreeEvaluator
 
-from computational_graphs.bench101.nasbench.nasbench import api
-from computational_graphs.bench101.nasbench.nasbench.lib.graph_util import gen_is_edge_fn
-from computational_graphs.bench101.nasbench_pytorch.model import Network
+from lib.bench101.nasbench.nasbench import api
+from lib.bench101.nasbench.nasbench.lib.graph_util import gen_is_edge_fn
+from lib.bench101.nasbench_pytorch.model import Network
 
 import os
 

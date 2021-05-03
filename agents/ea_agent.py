@@ -1,3 +1,4 @@
+from tempfile import gettempdir
 import pymoo.factory as factory
 
 import pymoo_custom_modules.operators.repairers as repairers
@@ -134,13 +135,15 @@ class EvoAgent(base.AgentBase):
         self.obj = checkpoint['obj']
         self.obj.problem = self.problem
         self.obj.problem.score_dict = checkpoint['score_dict']
+        self.obj.problem.elitist_archive = checkpoint['elitist_archive']
 
         return checkpoint
 
     def _save_checkpoint(self, checkpoint={}, **kwargs):        
         problem = self.obj.problem
         self.obj.problem = None
-        checkpoint['score_dict'] = problem.score_dict
+        checkpoint['elitist_archive'] = getattr(problem, 'elitist_archive', None)
+        checkpoint['score_dict'] = getattr(problem, 'score_dict', None)
         checkpoint['obj'] = copy.deepcopy(self.obj) 
         if self.obj.n_gen == 1:
             checkpoint['algorithm'] = self.algorithm
@@ -151,7 +154,8 @@ class EvoAgent(base.AgentBase):
         )
         super()._save_checkpoint(api=torch, 
                                  obj=checkpoint, 
-                                 f=os.path.join(self.config.checkpoint_dir, filepath))
+                                 f=os.path.join(self.config.checkpoint_dir, filepath),
+                                 pickle_protocol=5)
 
         self.obj = checkpoint['obj']
         self.obj.problem = problem
