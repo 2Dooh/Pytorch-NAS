@@ -4,7 +4,7 @@ import agents.base as base
 
 import lib.custom_models as graph_models
 
-import data_loaders
+import loaders
 
 import torch
 import torch.nn as nn
@@ -54,7 +54,7 @@ class NNAgent(base.AgentBase):
         )([getattr(callbacks, cb)(**kw) for cb, kw in self.config.callbacks.items()])
 
         data_loader = getattr(
-            data_loaders, self.config.data_loader.name
+            loaders, self.config.data_loader.name
         )(**self.config.data_loader.kwargs)
         self.train_queue = data_loader.train_loader
         self.valid_queue = data_loader.test_loader

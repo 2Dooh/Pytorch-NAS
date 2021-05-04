@@ -1,7 +1,7 @@
 from tempfile import gettempdir
 import pymoo.factory as factory
 
-import pymoo_custom_modules.operators.repairers as repairers
+import procedures.operators.repairers as repairers
 
 import logging
 
@@ -10,8 +10,8 @@ import copy
 from pymoo.model.repair import NoRepair
 from pymoo.model.duplicate import NoDuplicateElimination, DefaultDuplicateElimination
 
-import pymoo_custom_modules.problems as custom_problems
-import pymoo_custom_modules.operators.dupplicate as duplicate_eliminators
+import procedures.problems as custom_problems
+import procedures.operators.dupplicate as duplicate_eliminators
 
 import agents.base as base
 

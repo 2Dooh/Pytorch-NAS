@@ -9,7 +9,7 @@ import torch
 import numpy as np
 
 
-from pymoo_custom_modules.problems.multi_obj.bench201 import SSSBench201, TSSBench201
+from procedures.problems.bi_obj.bench201 import SSSBench201, TSSBench201
 from pymoo.factory import get_decision_making
 from pymoo.util.nds.non_dominated_sorting import NonDominatedSorting, find_non_dominated
 from pymoo.model.decision_making import normalize

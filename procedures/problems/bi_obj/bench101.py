@@ -5,9 +5,9 @@ import numpy as np
 from utils.neural_net.flops_benchmark import get_model_infos
 from utils.neural_net.gf_metric import GradientFreeEvaluator
 
-from lib.bench101.nasbench.nasbench import api
-from lib.bench101.nasbench.nasbench.lib.graph_util import gen_is_edge_fn
-from lib.bench101.nasbench_pytorch.model import Network
+from lib.nasbench101.nasbench import api
+from lib.nasbench101.nasbench.lib.graph_util import gen_is_edge_fn
+from lib.nasbench101_pytorch.model import Network
 
 import os
 
@@ -30,7 +30,7 @@ BIT_PER_OP = 2
 
 # NAS_BENCH = api.NASBench(os.path.join(os.environ('TORCH_HOME'), 'nasbench_only108.tfrecord'))
 
-class Bench101(Problem):
+class nasbench101(Problem):
     CIFAR10_SHAPE = [1, 3, 32, 32]
     CIFAR10_N_LABELS = 10
     def __init__(self,

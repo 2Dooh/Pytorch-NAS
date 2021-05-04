@@ -10,7 +10,7 @@ from lib.darts.cnn.model import NetworkCIFAR
 
 import numpy as np
 
-import nasbench301.nasbench301 as nb
+import lib.benchmarks.nasbench301.nasbench301 as nb
 
 import logging
 

@@ -16,7 +16,7 @@
     },
 
     "eliminate_duplicates": {
-        "name": "Bench101DuplicateEliminator",
+        "name": "nasbench101DuplicateEliminator",
         "kwargs": {}
     },
     
@@ -42,7 +42,7 @@
         }
     },
 
-    "repair": "Bench101Repairer",
+    "repair": "nasbench101Repairer",
 
     "selector": {
         "name": "TournamentSelector",
@@ -53,7 +53,7 @@
     },
 
     "problem": {
-        "name": "Bench101",
+        "name": "nasbench101",
         "kwargs": {
             "epoch": 36,
             "elementwise_evaluation": true

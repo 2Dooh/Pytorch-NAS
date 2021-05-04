@@ -4,8 +4,8 @@ import numpy as np
 
 import logging
 
-from lib.bench101.nasbench.nasbench.lib.graph_util import is_full_dag, is_isomorphic, gen_is_edge_fn
-from lib.bench101.nasbench.nasbench.lib.graph_util import hash_module
+from lib.nasbench101.nasbench.lib.graph_util import is_full_dag, is_isomorphic, gen_is_edge_fn
+from lib.nasbench101.nasbench.lib.graph_util import hash_module
 
 INPUT = -1
 OUTPUT = -2
@@ -16,7 +16,7 @@ N_BITS_CONNECTIONS = 21
 NUM_VERTICES = 7
 ALLOWED_OPS = [CONV3X3, CONV1X1, MAXPOOL3X3]
 BIT_PER_OP = 2
-class Bench101DuplicateEliminator(ElementwiseDuplicateElimination):
+class nasbench101DuplicateEliminator(ElementwiseDuplicateElimination):
     def __init__(self, **kwargs) -> None:
         super().__init__(cmp_func=self.is_equal, **kwargs)
 

@@ -12,7 +12,7 @@
 
 # from lib.models import get_cell_based_tiny_net
 
-# import data_loaders
+# import loaders
 
 # from easydict import EasyDict as edict
 
@@ -183,7 +183,7 @@
 #                           data_path=os.getcwd(),
 #                           seed=seed,
 #                           num_workers=num_workers)
-#         self.loader = getattr(data_loaders, dataset.upper())(
+#         self.loader = getattr(loaders, dataset.upper())(
 #             data_folder=os.getcwd(),
 #             num_workers=num_workers,
 #             batch_size=input_size[0],
@@ -507,7 +507,7 @@
 #                           dataset=dataset,
 #                           data_path=os.getcwd(),
 #                           seed=seed)
-#         self.loader = getattr(data_loaders, dataset.upper())(
+#         self.loader = getattr(loaders, dataset.upper())(
 #             data_folder=os.getcwd(),
 #             num_workers=4,
 #             batch_size=input_size[0],

@@ -2,8 +2,8 @@ import numpy as np
 
 from pymoo.model.repair import Repair
 
-from lib.bench101.nasbench.nasbench import api
-from lib.bench101.nasbench.nasbench.lib.graph_util import num_edges, is_full_dag, gen_is_edge_fn
+from lib.nasbench101.nasbench import api
+from lib.nasbench101.nasbench.lib.graph_util import num_edges, is_full_dag, gen_is_edge_fn
 
 INPUT = 'input'
 OUTPUT = 'output'
@@ -19,7 +19,7 @@ ALLOWED_EDGES = [0, 1]   # Binary adjacency matrix
 N_BITS_CONNECTIONS = 21
 N_BITS_OPERATIONS = 10
 BIT_PER_OP = 2
-class Bench101Repairer(Repair):
+class nasbench101Repairer(Repair):
     def _do(self, problem, pop, **kwargs):
         Z = pop.get('X')
         for i in range(Z.shape[0]):

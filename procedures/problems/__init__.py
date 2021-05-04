@@ -1,7 +1,7 @@
 import os
 import sys
 
-from .multi_obj import *
+from .bi_obj import *
 
 path = os.path.dirname(os.path.abspath(__file__))
 

@@ -2,7 +2,7 @@ from collections import namedtuple
 
 from ConfigSpace.read_and_write import json as cs_json
 
-import nasbench301.nasbench301 as nb
+import lib.benchmarks.nasbench301.nasbench301 as nb
 
 # Load the performance surrogate model
 #NOTE: Loading the ensemble will set the seed to the same as used during training (logged in the model_configs.json)

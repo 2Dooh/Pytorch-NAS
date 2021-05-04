@@ -6,7 +6,7 @@ import torch
 
 from .linear_region_counter import Linear_Region_Collector
 
-import data_loaders
+import loaders
 
 import random
 
@@ -28,7 +28,7 @@ class GradientFreeEvaluator:
                           data_path=os.getcwd(),
                           seed=seed,
                           num_workers=num_workers)
-        self.loader = getattr(data_loaders, dataset.upper())(
+        self.loader = getattr(loaders, dataset.upper())(
             data_folder=os.getcwd(),
             num_workers=num_workers,
             batch_size=ntk_batch_size,

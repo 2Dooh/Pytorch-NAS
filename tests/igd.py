@@ -10,7 +10,7 @@ import os
 
 import re
 
-from pymoo_custom_modules.problems.multi_obj.bench201 import SSSBench201, TSSBench201
+from procedures.problems.bi_obj.bench201 import SSSBench201, TSSBench201
 
 from pymoo.util.nds.non_dominated_sorting import find_non_dominated
 
