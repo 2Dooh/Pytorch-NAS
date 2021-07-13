@@ -14,5 +14,5 @@ xgboost>=1.4.1
 seaborn
 lightgbm
 IPython
-tensorflow==2.4.1
+tensorflow
 networkx

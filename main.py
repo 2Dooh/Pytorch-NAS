@@ -15,5 +15,5 @@ def cli(config, console_log):
     agent.solve()
 
 if __name__ == '__main__':
-    cli(['--config', './configs/TSSBench201.json'])
-    # cli()
+    # cli(['--config', './configs/dynamic_mlp.json'])
+    cli()
