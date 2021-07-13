@@ -12,6 +12,7 @@ from ..config_utils import load_config
 
 
 Dataset2Class = {'cifar10': 10,
+                 'FashionMNIST': 10,
                  'cifar100': 100,
                  'imagenet-1k-s': 1000,
                  'imagenet-1k': 1000,

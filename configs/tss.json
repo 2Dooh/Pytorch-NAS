@@ -1,0 +1,62 @@
+{
+    "agent": "EvoAgent",
+    "exp_name": "[TSS-CIFAR10][FLOPS_VALID]-UX-G60-S777_0-25EP",
+    "exp_cfg": {
+        "seed": 0,
+        "custom_problem": true, 
+        "summary_writer": false
+    },
+
+    "algorithm": {
+        "name": "nsga2",
+        "kwargs": {
+            "pop_size": 50,
+            "n_offsprings": 50
+        }
+    },
+
+    "eliminate_duplicates": {
+        "name": "TSSDuplicateElimination",
+        "kwargs": {"isomorphic": true}
+    },
+    
+    "sampling": "int_random",
+
+    "termination": {
+        "name": "n_gen",
+        "args": [60]
+    },
+
+    "crossover": {
+        "name": "int_ux",
+        "kwargs": {
+            "prob": 0.9
+        }
+    },
+
+    
+    "mutation": {
+        "name": "int_pm",
+        "kwargs": {
+            "prob": 0.02
+        }
+    },
+    
+
+    "problem": {
+        "name": "TopologySearchSpace",
+        "kwargs": {
+            "dataset": "cifar10-valid",
+            "iepoch": 24,
+            "elementwise_evaluation": true,
+            "hp": 200,
+            "trial_idx": 0,
+            "n_obj": 2
+        }
+    },
+
+    "callbacks": {
+        "PopLogger": {},
+        "PopSaver": {}
+    }
+}

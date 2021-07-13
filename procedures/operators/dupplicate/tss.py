@@ -6,14 +6,18 @@ import logging
 
 import lib.models.cell_operations as ops
 
+from nats_bench import create
+
 
 class TSSDuplicateElimination(ElementwiseDuplicateElimination):
     MAX_NODES = 4
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, isomorphic=False, **kwargs) -> None:
         super().__init__(cmp_func=self.is_equal, **kwargs)
         self.predefined_ops = np.array(ops.NAS_BENCH_201)
         self.arch_dict = {}
         self.logger = logging.getLogger(self.__class__.__name__)
+        self.isomorphic = isomorphic
+        self.nodes = [0, 0, 1, 0, 1, 2]
 
     def is_equal(self, a, b):
         x = self.__decode(a.get('X')); y = self.__decode(b.get('X'))
@@ -21,7 +25,8 @@ class TSSDuplicateElimination(ElementwiseDuplicateElimination):
         if same_representation:
             self.logger.info('Same repr: {} = {}'.format(a.get('X').tolist(), b.get('X').tolist()))
             return True
-            
+        if not self.isomorphic:
+            return False
         key_a = tuple(a.get('X').tolist()); key_b = tuple(b.get('X').tolist())
         if key_a in self.arch_dict:
             unique_a = self.arch_dict[key_a]
@@ -48,19 +53,13 @@ class TSSDuplicateElimination(ElementwiseDuplicateElimination):
         # decoded_indices = [b2i(genotype[start:start+3]) for start in np.arange(genotype.shape[0])[::3]]
         # ops = self.predefined_ops[decoded_indices]
         ops = self.predefined_ops[x]
-        node_str = '{}~{}'
-        phenotype = []
-        k = 0
-        for i in range(self.MAX_NODES):
-            node_op = []
-            for j in range(i):
-                node_op += [node_str.format(ops[k], j)]
-                k += 1
-            if len(node_op) > 0:
-                phenotype += ['|' + '|'.join(node_op) + '|']
-                
-        phenotype = '+'.join(phenotype)
-        return phenotype
+        strings = ['|']
+
+        for i, op in enumerate(ops):
+            strings.append(op+'~{}|'.format(self.nodes[i]))
+            if i < len(self.nodes) - 1 and self.nodes[i+1] == 0:
+                strings.append('+|')
+        return ''.join(strings)
 
 
 #####################################################

@@ -1,6 +1,6 @@
 {
     "agent": "EvoAgent",
-    "exp_name": "[TSS-CIFAR10][FLOPS_VALID]-UX-G200-S777-200EP-NO_ISO",
+    "exp_name": "[TSSGF-CIFAR10][FLOPS_NTK_LR]-UX-G60-S0",
     "exp_cfg": {
         "seed": 0,
         "custom_problem": true, 
@@ -16,19 +16,19 @@
     },
 
     "eliminate_duplicates": {
-        "name": "Bench201DuplicateEliminator",
-        "kwargs": {}
+        "name": "TSSDuplicateElimination",
+        "kwargs": {"isomorphic": true}
     },
     
     "sampling": "int_random",
 
     "termination": {
         "name": "n_gen",
-        "args": [200]
+        "args": [60]
     },
 
     "crossover": {
-        "name": "(real|bin|int)_ux",
+        "name": "int_ux",
         "kwargs": {
             "prob": 0.9
         }
@@ -44,12 +44,20 @@
     
 
     "problem": {
-        "name": "TSSBench201",
+        "name": "HyperTune",
         "kwargs": {
             "dataset": "cifar10-valid",
-            "iepoch": 199,
             "elementwise_evaluation": true,
-            "hp": 200
+            "benchmark_path": null,
+            "evaluator_config": {
+                "dataset": "cifar10",
+                "lr_sample_batch": 3,
+                "lr_input_size": [1000, 1, 3, 3],
+                "ntk_batch_size": 16,
+                "seed": 0,
+                "num_workers": 0,
+                "n_repeats": 3
+            }
         }
     },
 

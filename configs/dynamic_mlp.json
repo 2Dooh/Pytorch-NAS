@@ -1,0 +1,68 @@
+{
+    "agent": "EvoAgent",
+    "exp_name": "[DMLP-FashionMNIST][NTK_LR]-UX-G60-S0",
+    "exp_cfg": {
+        "seed": 0,
+        "custom_problem": true, 
+        "summary_writer": false
+    },
+
+    "algorithm": {
+        "name": "nsga2",
+        "kwargs": {
+            "pop_size": 50,
+            "n_offsprings": 50
+        }
+    },
+
+    "eliminate_duplicates": true,
+    
+    "sampling": "real_random",
+
+    "termination": {
+        "name": "n_gen",
+        "args": [60]
+    },
+
+    "crossover": {
+        "name": "real_sbx",
+        "kwargs": {
+            "prob": 0.9,
+            "eta": 20
+        }
+    },
+
+    
+    "mutation": {
+        "name": "real_pm",
+        "kwargs": {
+            "prob": 0.02
+        }
+    },
+    
+
+    "problem": {
+        "name": "DynamicMLP",
+        "kwargs": {
+            "elementwise_evaluation": true,
+            "input_size": 784,
+            "output_size": 10,
+            "max_depth": 5,
+            "node_bound": [32, 1024],
+            "evaluator_cfg": {
+                "dataset": "FashionMNIST",
+                "lr_sample_batch": 3,
+                "lr_input_size": [1000, 3, 3],
+                "ntk_batch_size": 16,
+                "seed": 0,
+                "num_workers": 0,
+                "n_repeats": 3
+            }
+        }
+    },
+
+    "callbacks": {
+        "PopLogger": {},
+        "PopSaver": {}
+    }
+}

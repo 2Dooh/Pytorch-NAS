@@ -1,7 +1,3 @@
-import numpy as np
-
-import torch
-
 from nats_bench import create
 
 import lib.models.cell_operations as ops
@@ -10,36 +6,46 @@ from lib.models import get_cell_based_tiny_net
 
 from easydict import EasyDict as edict
 
-import os
+from abc import abstractmethod
 
 from pymoo.model.problem import Problem
 
+import numpy as np
 
 from utils.moeas.elitist_archive import ElitistArchive
+from utils.neural_net.flops_benchmark import get_model_infos
 
 import logging
 
-from abc import abstractmethod
+import os
+from os.path import expanduser
 
 class NATSBench(Problem):
     def __init__(self, 
                 search_space, 
-                iepoch,
                 dataset,
+                iepoch=12,
                 hp='12', 
+                benchmark_path=None,
                 trial_idx=0,
                 **kwargs):
 
         super().__init__(**kwargs)
-        self.trial_seed = trial_idx
+        self.trial_idx = trial_idx
         self.iepoch = iepoch
         self.hp = hp
         self.dataset = dataset
-        self.api = create(None, search_space, fast_mode=True, verbose=False)
+        if benchmark_path is None:
+            benchmark_path = os.path.join(expanduser('~'), '.torch/NATS-tss-v1_0-3ffb9-simple')
+        if '~' in benchmark_path:
+            benchmark_path = benchmark_path.replace('~', '')
+            benchmark_path = os.path.join(expanduser('~'), benchmark_path)
+        
+        self.api = create(benchmark_path, search_space, fast_mode=True, verbose=False)
 
         self.logger = logging.getLogger(name=self.__class__.__name__)
         self.score_dict = {}
-        self.elitist_archive = ElitistArchive()
+        self.elitist_archive = ElitistArchive(filter_duplicate_by_key=False)
 
     def _evaluate(self, x, out, *args, **kwargs):
         genotype = self._decode(x)
@@ -93,25 +99,91 @@ class TopologySearchSpace(NATSBench):
                          search_space='tss', 
                          **kwargs)
         self.primitives = np.array(ops.NAS_BENCH_201)
+        self.nodes = [0, 0, 1, 0, 1, 2]
 
     def _decode(self, x):
         # b2i = lambda a: int(''.join(str(int(bit)) for bit in a), 2)
         # decoded_indices = [b2i(genotype[start:start+self.n_bits_per_op]) for start in np.arange(genotype.shape[0])[::self.n_bits_per_op]]
         # ops = self.predefined_ops[decoded_indices]
-        ops = self.primitives[x]
-        node_str = '{}~{}'
-        genotype = []
-        k = 0
-        for i in range(self.MAX_NODES):
-            node_op = []
-            for j in range(i):
-                node_op += [node_str.format(ops[k], j)]
-                k += 1
-            if len(node_op) > 0:
-                genotype += ['|' + '|'.join(node_op) + '|']
+        # ops = self.primitives[x]
+        # node_str = '{}~{}'
+        # genotype = []
+        # k = 0
+        # for i in range(self.MAX_NODES):
+        #     node_op = []
+        #     for j in range(i):
+        #         node_op += [node_str.format(ops[k], j)]
+        #         k += 1
+        #     if len(node_op) > 0:
+        #         genotype += ['|' + '|'.join(node_op) + '|']
                 
-        genotype = '+'.join(genotype)
-        return genotype
+        # genotype = '+'.join(genotype)
+        # return genotype
+
+        ops = self.primitives[x]
+        strings = ['|']
+
+        for i, op in enumerate(ops):
+            strings.append(op+'~{}|'.format(self.nodes[i]))
+            if i < len(self.nodes) - 1 and self.nodes[i+1] == 0:
+                strings.append('+|')
+        return ''.join(strings)
+
+from utils.neural_net.gf_metric import GradientFreeEvaluator
+class TSSGradientFree(TopologySearchSpace):
+    def __init__(self, 
+                 evaluator_config,
+                 **kwargs):
+        super().__init__(n_obj=3,
+                         replace_nan_values_of='auto',
+                         **kwargs)
+        self.evaluator = GradientFreeEvaluator(**evaluator_config)
+
+    def _evaluate(self, x, out, *args, **kwargs):
+        key = tuple(x.tolist())
+        if key in self.score_dict:
+            self.logger.info('Re-evaluated arch: {}'.format(key))
+            out['F'] = self.score_dict[key]
+            return
+            
+        genotype = self._decode(x)
+        index = self.api.query_index_by_arch(genotype)
+
+        config = self.api.get_net_config(index, self.dataset)
+        config.update({
+            'C': 1,
+            'N': 1,
+            'use_stem': True
+        })
+
+        config_thin = config.copy()
+        config_thin.update({
+            'C': 1,
+            'N': 1,
+            'use_stem': False
+        })
+
+        network = get_cell_based_tiny_net(edict(config)).cuda()
+        network_thin = get_cell_based_tiny_net(edict(config_thin)).cuda()
+
+        flops, _ = get_model_infos(network, [1, 3, 32, 32])
+
+        ntks = self.evaluator.calc_ntk(network)
+        ntk = np.log(max(ntks))
+
+        lrs = self.evaluator.calc_lrc(network_thin)
+        lr = min(lrs)
+
+        F = [flops, ntk, -lr]
+
+        out['F'] = np.column_stack(F)
+        self.score_dict[key] = out['F']
+
+        self.elitist_archive.insert(x, out['F'], key=key)
+
+
+        
+
 
 # import random
 # from lib.custom_models.mlp import MultiLayerPerceptron

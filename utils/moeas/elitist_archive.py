@@ -6,20 +6,28 @@ import numpy as np
 import logging
 
 class ElitistArchive:
-    def __init__(self, verbose=True) -> None:
+    def __init__(self, verbose=True, filter_duplicate_by_key=True) -> None:
         self.archive = {}
         self.verbose = verbose
         self.logger = logging.getLogger(self.__class__.__name__)
+        self.filter_duplicate_by_key = filter_duplicate_by_key
         
 
     def __acceptance_test(self, f, key):
         if len(self.archive) == 0:
             return True 
-        elif key not in self.archive['keys'] and\
+        elif not self.__is_duplicate(f, key) and\
             len(find_non_dominated(f, self.archive['F'])) > 0:
             return True
         else:
             return False
+
+    def __is_duplicate(self, f, key):
+        if self.filter_duplicate_by_key:
+            return key in self.archive['keys']
+        else:
+            return f.tolist() in self.archive['F'].tolist()
+
 
 
     def insert(self, x, f, key):

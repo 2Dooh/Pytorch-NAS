@@ -32,7 +32,10 @@ def get_datasets(name, root, input_size, cutout=-1):
         input_size = input_size[1:]
     assert input_size[1] == input_size[2]
 
-    if name == 'cifar10':
+    if name =='FashionMNIST':
+        mean = (0.1307,)
+        std = (0.3081,) 
+    elif name == 'cifar10':
         mean = [x / 255 for x in [125.3, 123.0, 113.9]]
         std  = [x / 255 for x in [63.0, 62.1, 66.7]]
     elif name == 'cifar100':
@@ -47,7 +50,12 @@ def get_datasets(name, root, input_size, cutout=-1):
         raise TypeError("Unknow dataset : {:}".format(name))
 
     # Data Argumentation
-    if name == 'cifar10' or name == 'cifar100':
+    if name =='FashionMNIST':
+        lists = [transforms.RandomCrop(input_size[1], padding=0), transforms.ToTensor(), transforms.Normalize(mean, std), torch.flatten]
+        if cutout > 0: lists += [CUTOUT(cutout)]
+        train_transform = transforms.Compose(lists)
+        test_transform  = transforms.Compose([transforms.ToTensor(), transforms.Normalize(mean, std), torch.flatten])
+    elif name == 'cifar10' or name == 'cifar100':
         lists = [transforms.RandomCrop(input_size[1], padding=0), transforms.ToTensor(), transforms.Normalize(mean, std), RandChannel(input_size[0])]
         if cutout > 0 : lists += [CUTOUT(cutout)]
         train_transform = transforms.Compose(lists)
@@ -74,8 +82,10 @@ def get_datasets(name, root, input_size, cutout=-1):
         test_transform = transforms.Compose([transforms.Resize(40), transforms.CenterCrop(32), transforms.ToTensor(), normalize])
     else:
         raise TypeError("Unknow dataset : {:}".format(name))
-
-    if name == 'cifar10':
+    if name == 'FashionMNIST':
+        train_data = dset.FashionMNIST(root, train=True, transform=train_transform, download=True)
+        test_data = dset.FashionMNIST(root=root, train=False, transform=test_transform, download=True)
+    elif name == 'cifar10':
         train_data = dset.CIFAR10 (root, train=True , transform=train_transform, download=True)
         test_data  = dset.CIFAR10 (root, train=False, transform=test_transform , download=True)
         assert len(train_data) == 50000 and len(test_data) == 10000
@@ -227,8 +237,8 @@ class Linear_Region_Collector:
                 m.register_forward_hook(hook=self.hook_in_forward)
 
     def hook_in_forward(self, module, input, output):
-        if isinstance(input, tuple) and len(input[0].size()) == 4:
-            self.interFeature.append(output.detach())  # for ReLU
+        # f isinstance(input, tuple) and len(input[0].size()) == 4:
+        self.interFeature.append(output.detach())  # for ReLU
 
     def forward_batch_sample(self):
         for _ in range(self.sample_batch):
