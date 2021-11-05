@@ -39,5 +39,5 @@ def get_ntk_n(xloader, networks, recalbn=0, train_mode=False, num_batch=-1):
     conds = []
     for ntk in ntks:
         eigenvalues, _ = torch.symeig(ntk)  # ascending
-        conds.append(np.nan_to_num((eigenvalues[-1] / eigenvalues[0]).item(), copy=True, nan=100000.0))
+        conds.append(np.nan_to_num((eigenvalues[-1] / eigenvalues[0]).item(), copy=True, nan=np.inf))
     return conds

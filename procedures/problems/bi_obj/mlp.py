@@ -45,6 +45,9 @@ class DynamicMLP(Problem):
             (int(denormalize(n_nodes, *self.node_bound)), drop_prob) \
                 for n_nodes, drop_prob, layer_prob in x if layer_prob > .5
         ]
+
+
+        #backbones = [(int(denormalize(n_nodes, 32, 1024)), drop_prob) for n_nodes, drop_prob, layer_prob in x if layer_prob > .5]
         
         key = tuple([
             (int(denormalize(n_nodes, *self.node_bound)), drop_prob, layer_prob > .5) \
